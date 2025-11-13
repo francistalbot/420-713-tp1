@@ -1,3 +1,4 @@
+import { useAuth } from "@/utils/auth";
 import {
   DarkTheme,
   DefaultTheme,
@@ -18,6 +19,7 @@ export const unstable_settings = {
 const isLoggedIn = false;
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { isLoggedIn, logIn, logOut } = useAuth();
 
   useEffect(() => {
     const setupDatabase = async () => {
