@@ -1,4 +1,3 @@
-import { useAuth } from "@/utils/auth";
 import {
   DarkTheme,
   DefaultTheme,
@@ -11,6 +10,7 @@ import "react-native-reanimated";
 import { initDatabase } from "../database/initDatabase";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useAuthStore } from "@/utils/authStore";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -19,7 +19,6 @@ export const unstable_settings = {
 const isLoggedIn = false;
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { isLoggedIn, logIn, logOut } = useAuth();
 
   useEffect(() => {
     const setupDatabase = async () => {
@@ -36,18 +35,18 @@ export default function RootLayout() {
 
     setupDatabase();
   }, []);
-
+  const { userId } = useAuthStore();
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Protected guard={isLoggedIn}>
+        <Stack.Protected guard={!!userId}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="modal"
             options={{ presentation: "modal", title: "Modal" }}
           />
         </Stack.Protected>
-        <Stack.Protected guard={!isLoggedIn}>
+        <Stack.Protected guard={!userId}>
           <Stack.Screen name="signin" options={{ headerShown: false }} />
           <Stack.Screen name="createAccount" options={{ headerShown: false }} />
         </Stack.Protected>
