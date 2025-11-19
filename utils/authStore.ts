@@ -1,15 +1,16 @@
+import { createUser } from "@/models/User";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { findUserByCredentials } from "../models/User";
-
 const isWeb = Platform.OS === "web";
 
 type UserState = {
   userId: string | null;
   logIn: (username: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
+  createUser: (username: string, password: string, email: string) => Promise<void>;
 };
 
 export const useAuthStore = create(
@@ -17,9 +18,7 @@ export const useAuthStore = create(
     (set) => ({
       userId: null,
       logIn: async (username: string, password: string) => {
-        console.log("Tentative de connexion pour :", username);
         const result = await findUserByCredentials(username, password);
-        console.log("Résultat de la connexion :", result);
         if (result) {
           set((state) => ({ ...state, userId: result.id }));
         }
@@ -28,6 +27,13 @@ export const useAuthStore = create(
       logOut: async () => {
         set((state) => ({ ...state, userId: null }));
       },
+      createUser: async (username: string, email: string, password: string) => {
+        // Implementation for creating a user goes here
+        const result = await createUser(username, email, password);
+        if (result) {
+          set((state) => ({ ...state, userId: result.id }));
+        }
+      }
     }),
     {
       name: "auth-store",

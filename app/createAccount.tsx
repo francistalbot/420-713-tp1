@@ -1,6 +1,5 @@
-import { router } from "expo-router";
-import { createUser } from "@/models/User";
 import { useAuthStore } from "@/utils/authStore";
+import { router } from "expo-router";
 import { useState } from "react";
 import { Button, Text, TextInput } from "react-native";
 
@@ -20,7 +19,7 @@ const initialFormData: FormData = {
 };
 
 export default function createAccount() {
-  const { logIn } = useAuthStore();
+  const { createUser } = useAuthStore();
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const handleInputChange = (field: string, value: string) => {
@@ -41,9 +40,6 @@ export default function createAccount() {
     }
 
     createUser(formData.username, formData.email, formData.password)
-      .then(() => {
-        logIn(formData.username, formData.password);
-      })
       .catch((error) => {
         console.error("Erreur lors de la création du compte :", error);
       });
@@ -75,7 +71,7 @@ export default function createAccount() {
         value={formData.confirmPassword}
         onChangeText={(text) => handleInputChange("confirmPassword", text)}
       />
-      <Button title="Se connecter" onPress={() => createAccount()} />
+      <Button title="Créer un compte" onPress={() => createAccount()} />
       <Button
         title="Retour à la connexion"
         onPress={() => router.push("/signin")}
