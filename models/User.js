@@ -1,10 +1,10 @@
 import dbPromise from "../database/initDatabase";
 
-export const createUser = async (username, password) => {
+export const createUser = async (username, email, password) => {
   const db = await dbPromise;
   const result = await db.runAsync(
-    "INSERT INTO users (username, password) VALUES (?, ?)",
-    [username, password]
+    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+    [username, email, password]
   );
   return result.insertId;
 };
