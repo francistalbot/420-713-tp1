@@ -1,28 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Alert,
+  StyleSheet,
+} from "react-native";
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
 import { createTrip } from "../../lib/trips";
 import { addWaypoint } from "../../lib/waypoints";
 
-interface Props {
-  userId?: number; // tu pourras le passer via AuthContext
-}
-
-export default function AddTripScreen({ userId = 1 }: Props) {
+export default function AddTripScreen() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isTracking, setIsTracking] = useState(false);
-  const [tripId, setTripId] = useState<number | null>(null);
-  const [positionCount, setPositionCount] = useState(0);
+  const [positions, setPositions] = useState<any[]>([]);
+  const [trackingCompleted, setTrackingCompleted] = useState(false);
 
-  let trackingTimer: NodeJS.Timer | null = null;
+  const [elapsed, setElapsed] = useState(0); // ⏱ compteur en secondes
 
-  // Nettoyer le timer si on quitte l'écran
-  useEffect(() => {
-    return () => {
-      if (trackingTimer) clearInterval(trackingTimer);
-    };
-  }, []);
+  const trackingRef = useRef<NodeJS.Timer | null>(null);
+  const timerRef = useRef<NodeJS.Timer | null>(null);
+
+  // Format date yyyy-MM-dd HH:mm:ss
+  const formatDate = (d: Date) =>
+    d.toISOString().slice(0, 19).replace("T", " ");
 
   const startTracking = async () => {
     if (!name.trim()) {
@@ -30,45 +35,74 @@ export default function AddTripScreen({ userId = 1 }: Props) {
       return;
     }
 
-    // Demande permission
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission refusée", "L'accès à la localisation est requis.");
+      Alert.alert("Permission refusée", "Autorisez la localisation.");
+      return;
+    }
+
+    setPositions([]);
+    setTrackingCompleted(false);
+    setIsTracking(true);
+    setElapsed(0);
+
+    // démarrer le compteur
+    timerRef.current = setInterval(() => {
+      setElapsed((prev) => prev + 1);
+    }, 1000);
+
+    // démarrer le tracking GPS (1 point toutes les 5 secondes)
+    trackingRef.current = setInterval(async () => {
+      const loc = await Location.getCurrentPositionAsync({});
+      const point = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+        timestamp: formatDate(new Date()),
+      };
+      setPositions((prev) => [...prev, point]);
+    }, 5000);
+  };
+
+  const stopTracking = () => {
+    if (trackingRef.current) clearInterval(trackingRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    setIsTracking(false);
+    setTrackingCompleted(true);
+  };
+
+  const sendTrip = async () => {
+    if (positions.length < 1) {
+      Alert.alert("Erreur", "Aucun point GPS enregistré.");
       return;
     }
 
     try {
-      const newTripId = await createTrip(name, description, userId);
-      setTripId(newTripId);
-      setIsTracking(true);
-      setPositionCount(0);
+      const createdAt = formatDate(new Date());
+      const tripId = await createTrip(name, description, 1);
 
-      trackingTimer = setInterval(async () => {
-        const loc = await Location.getCurrentPositionAsync({});
-        await addWaypoint(newTripId, loc.coords.latitude, loc.coords.longitude);
-        setPositionCount((c) => c + 1);
-      }, 5000);
+      for (const p of positions) {
+        await addWaypoint(tripId, p.latitude, p.longitude);
+      }
 
-      Alert.alert("Suivi démarré", "Le suivi GPS est actif (1 point/5s).");
+      Alert.alert("Succès", "Trajet sauvegardé !");
+
+      // reset
+      setName("");
+      setDescription("");
+      setPositions([]);
+      setElapsed(0);
+      setTrackingCompleted(false);
+
+      router.push("/(main)");
     } catch (err) {
       console.error(err);
-      Alert.alert("Erreur", "Impossible de démarrer le trajet.");
+      Alert.alert("Erreur", "Impossible d'enregistrer le trajet.");
     }
   };
 
-  const stopTracking = async () => {
-    if (trackingTimer) clearInterval(trackingTimer);
-    setIsTracking(false);
-    trackingTimer = null;
-
-    Alert.alert(
-      "Trajet enregistré",
-      `Trajet sauvegardé avec ${positionCount} positions.`
-    );
-    setName("");
-    setDescription("");
-    setTripId(null);
-    setPositionCount(0);
+  const goBack = () => {
+    router.push("/(main)");
   };
 
   return (
@@ -84,22 +118,37 @@ export default function AddTripScreen({ userId = 1 }: Props) {
 
       <TextInput
         style={[styles.input, { height: 80 }]}
-        placeholder="Description (facultative)"
+        placeholder="Description"
         multiline
         value={description}
         onChangeText={setDescription}
       />
 
-      {!isTracking ? (
-        <Button title="Démarrer le trajet" onPress={startTracking} />
-      ) : (
-        <Button title="Arrêter et enregistrer" color="red" onPress={stopTracking} />
+      {/* Compteur visible seulement pendant le tracking */}
+      {isTracking && (
+        <Text style={styles.counter}>Temps écoulé : {elapsed}s</Text>
+      )}
+
+      {!isTracking && !trackingCompleted && (
+        <Button title="Démarrer" onPress={startTracking} />
       )}
 
       {isTracking && (
-        <Text style={styles.status}>
-          Points enregistrés : {positionCount}
-        </Text>
+        <Button title="Arrêter" color="red" onPress={stopTracking} />
+      )}
+
+      {trackingCompleted && (
+        <>
+          <Text style={styles.info}>
+            {positions.length} points enregistrés
+          </Text>
+
+          <Button title="Envoyer le trajet" onPress={sendTrip} />
+
+          <View style={{ marginTop: 10 }}>
+            <Button title="Retour" onPress={goBack} />
+          </View>
+        </>
       )}
     </View>
   );
@@ -108,15 +157,15 @@ export default function AddTripScreen({ userId = 1 }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
     padding: 20,
+    backgroundColor: "#fff",
     justifyContent: "center",
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
-    textAlign: "center",
     marginBottom: 20,
+    textAlign: "center",
   },
   input: {
     borderWidth: 1,
@@ -124,12 +173,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginBottom: 15,
-    fontSize: 16,
   },
-  status: {
+  counter: {
     textAlign: "center",
-    marginTop: 15,
-    color: "green",
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#2b6cb0",
+    marginBottom: 15,
+  },
+  info: {
+    marginTop: 10,
+    textAlign: "center",
+    fontWeight: "bold",
+    color: "green",
   },
 });

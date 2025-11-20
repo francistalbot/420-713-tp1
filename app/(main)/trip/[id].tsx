@@ -1,15 +1,15 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Button,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Button,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { getTripById, updateTrip } from "../../../lib/trips";
 
@@ -101,17 +101,17 @@ export default function TripDetailScreen() {
   const region =
     start && end
       ? {
-          latitude: (start.latitude + end.latitude) / 2,
-          longitude: (start.longitude + end.longitude) / 2,
-          latitudeDelta: Math.abs(start.latitude - end.latitude) + 0.02,
-          longitudeDelta: Math.abs(start.longitude - end.longitude) + 0.02,
-        }
+        latitude: (start.latitude + end.latitude) / 2,
+        longitude: (start.longitude + end.longitude) / 2,
+        latitudeDelta: Math.abs(start.latitude - end.latitude) + 0.02,
+        longitudeDelta: Math.abs(start.longitude - end.longitude) + 0.02,
+      }
       : {
-          latitude: 45.5,
-          longitude: -73.6,
-          latitudeDelta: 0.1,
-          longitudeDelta: 0.1,
-        };
+        latitude: 45.5,
+        longitude: -73.6,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
+      };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -121,7 +121,7 @@ export default function TripDetailScreen() {
       {Platform.OS === "web" ? (
         <View style={styles.webFallback}>
           <Text style={{ fontSize: 16, textAlign: "center", color: "#444" }}>
-            🖥️ La carte n’est pas disponible sur Web.  
+            🖥️ La carte n’est pas disponible sur Web.
             Veuillez tester sur Android ou iOS.
           </Text>
         </View>
@@ -171,6 +171,9 @@ export default function TripDetailScreen() {
         />
 
         <Button title="Enregistrer les modifications" onPress={handleUpdate} />
+        <View style={{ marginTop: 10 }}>
+          <Button title="Retour" onPress={() => router.push("/(main)")} />
+        </View>
       </View>
     </ScrollView>
   );
