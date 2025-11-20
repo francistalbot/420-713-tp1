@@ -1,10 +1,16 @@
 import { useAuthStore } from "@/utils/authStore";
 import { useState } from "react";
-import { Button, Text, TextInput } from "react-native";
+import {
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function userSetting() {
-  const { logOut, changePassword, getUserInfo } = useAuthStore();
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const { logOut, changePassword } = useAuthStore();
 
   const [passwordForm, setPasswordForm] = useState({
     message: null as string | null,
@@ -12,6 +18,7 @@ export default function userSetting() {
     newPassword: "",
     confirmNewPassword: "",
   });
+
   const handleInputChange = (field: string, value: string) => {
     setPasswordForm((prev) => ({
       ...prev,
@@ -44,30 +51,92 @@ export default function userSetting() {
   };
 
   return (
-    <>
-      <Text>Paramètres Utilisateur</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Paramètres Utilisateur</Text>
 
-      {/*Modifier le mot de passe*/}
-      <Text>Changer le mot de passe</Text>
-      {passwordForm.message && <Text>{passwordForm.message}</Text>}
-      <TextInput
-        placeholder="Ancien mot de passe"
-        secureTextEntry={true}
-        onChangeText={(value) => handleInputChange("oldPassword", value)}
-      />
-      <TextInput
-        placeholder="Nouveau mot de passe"
-        secureTextEntry={true}
-        onChangeText={(value) => handleInputChange("newPassword", value)}
-      />
-      <TextInput
-        placeholder="Confirmer le nouveau mot de passe"
-        secureTextEntry={true}
-        onChangeText={(value) => handleInputChange("confirmNewPassword", value)}
-      />
-      <Button title="Changer le mot de passe" onPress={modifyPassword} />
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Changer le mot de passe</Text>
+        {passwordForm.message && (
+          <Text style={styles.message}>{passwordForm.message}</Text>
+        )}
+        <TextInput
+          style={styles.input}
+          placeholder="Ancien mot de passe"
+          secureTextEntry={true}
+          value={passwordForm.oldPassword}
+          onChangeText={(value) => handleInputChange("oldPassword", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Nouveau mot de passe"
+          secureTextEntry={true}
+          value={passwordForm.newPassword}
+          onChangeText={(value) => handleInputChange("newPassword", value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirmer le nouveau mot de passe"
+          secureTextEntry={true}
+          value={passwordForm.confirmNewPassword}
+          onChangeText={(value) =>
+            handleInputChange("confirmNewPassword", value)
+          }
+        />
+        <View style={styles.buttonContainer}>
+          <Button title="Changer le mot de passe" onPress={modifyPassword} />
+        </View>
+      </View>
 
-      <Button title="Se déconnecter" onPress={logOut} />
-    </>
+      <View style={styles.section}>
+        <View style={styles.buttonContainer}>
+          <Button title="Se déconnecter" onPress={logOut} color="#f44336" />
+        </View>
+      </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 30,
+    marginTop: 20,
+    textAlign: "center",
+  },
+  section: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginBottom: 15,
+  },
+  input: {
+    backgroundColor: "#f9f9f9",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  message: {
+    textAlign: "center",
+    marginBottom: 15,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#e3f2fd",
+  },
+  buttonContainer: {
+    marginVertical: 8,
+  },
+});
