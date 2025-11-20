@@ -6,7 +6,7 @@ export const createUser = async (username, email, password) => {
     "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
     [username, email, password]
   );
-  return result;
+  return result.lastInsertRowId;
 };
 
 export const getAllUsers = async () => {
@@ -40,6 +40,11 @@ export const changeUserPassword = async (id, oldPassword, newPassword) => {
     "UPDATE users SET password = ? WHERE id = ? AND password = ?",
     [newPassword, id, oldPassword]
   );
+
+  if (result.changes === 0) {
+    throw new Error("Ancien mot de passe incorrect");
+  }
+
   return result.changes;
 };
 

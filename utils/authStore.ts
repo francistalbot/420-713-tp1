@@ -7,7 +7,7 @@ import { findUserByCredentials } from "../models/User";
 const isWeb = Platform.OS === "web";
 
 type UserState = {
-  userId: string | null;
+  userId: number | null;
   logIn: (username: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
   createUser: (
@@ -23,7 +23,6 @@ export const useAuthStore = create(
   persist<UserState>(
     (set) => ({
       userId: null,
-
       logIn: async (username: string, password: string) => {
         const result = await findUserByCredentials(username, password);
         if (result) {
@@ -34,16 +33,11 @@ export const useAuthStore = create(
       logOut: async () => {
         set((state) => ({ ...state, userId: null, username: null }));
       },
-
       createUser: async (username: string, email: string, password: string) => {
         // Implementation for creating a user goes here
-        const result = await createUser(username, email, password);
-        console.log("User created with ID:", result);
-        if (result) {
-          set((state) => ({
-            ...state,
-            userId: result.lastInsertRowId.toString(),
-          }));
+        const insertId = await createUser(username, email, password);
+        if (insertId) {
+          set((state) => ({ ...state, userId: insertId }));
         }
       },
 

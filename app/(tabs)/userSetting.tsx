@@ -19,31 +19,28 @@ export default function userSetting() {
     }));
   };
 
-  const modifyPassword = () => {
+  const modifyPassword = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
       handleInputChange(
         "message",
         "Les nouveaux mots de passe ne correspondent pas."
       );
-      console.error("Les nouveaux mots de passe ne correspondent pas.");
       return;
     }
-    changePassword(passwordForm.oldPassword, passwordForm.newPassword)
-      .catch((error) => {
-        handleInputChange(
-          "message",
-          "Erreur lors du changement de mot de passe."
-        );
-        console.error("Erreur lors du changement de mot de passe :", error);
-      })
-      .finally(() => {
-        setPasswordForm({
-          message: "Mot de passe changé avec succès.",
-          oldPassword: "",
-          newPassword: "",
-          confirmNewPassword: "",
-        });
+    try {
+      await changePassword(passwordForm.oldPassword, passwordForm.newPassword);
+      setPasswordForm({
+        message: "Mot de passe changé avec succès.",
+        oldPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
       });
+    } catch (error: any) {
+      handleInputChange(
+        "message",
+        error.message || "Erreur lors du changement de mot de passe"
+      );
+    }
   };
 
   return (
