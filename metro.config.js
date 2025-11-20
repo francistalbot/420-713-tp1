@@ -1,18 +1,18 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require('expo/metro-config');
 
-/** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
-// Add wasm asset support
-config.resolver.assetExts.push('wasm');
- 
-// Add COEP and COOP headers to support SharedArrayBuffer
-config.server.enhanceMiddleware = (middleware) => {
-  return (req, res, next) => {
-    res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    middleware(req, res, next);
-  };
+
+// Remplace react-native-maps par notre version web
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (platform === "web" && moduleName === "react-native-maps") {
+    return {
+      filePath: require.resolve("./react-native-maps.web.js"),
+      type: "sourceFile",
+    };
+  }
+
+  return context.resolveRequest(context, moduleName, platform);
 };
- 
+
 module.exports = config;
