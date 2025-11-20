@@ -40,7 +40,12 @@ export default function createAccount() {
     }
 
     createUser(formData.username, formData.email, formData.password)
+      .then(() => {
+        handleInputChange("message", "Compte créé avec succès !");
+        router.push("/signin");
+      })
       .catch((error) => {
+        handleInputChange("message", "Erreur lors de la création du compte.");
         console.error("Erreur lors de la création du compte :", error);
       });
   };

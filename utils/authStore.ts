@@ -10,16 +10,20 @@ type UserState = {
   userId: string | null;
   logIn: (username: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
-  createUser: (username: string, password: string, email: string) => Promise<void>;
+  createUser: (
+    username: string,
+    password: string,
+    email: string
+  ) => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   getUserInfo: () => Promise<any>;
-  
 };
 
 export const useAuthStore = create(
   persist<UserState>(
     (set) => ({
       userId: null,
+
       logIn: async (username: string, password: string) => {
         const result = await findUserByCredentials(username, password);
         if (result) {
@@ -30,25 +34,26 @@ export const useAuthStore = create(
       logOut: async () => {
         set((state) => ({ ...state, userId: null, username: null }));
       },
+
       createUser: async (username: string, email: string, password: string) => {
         // Implementation for creating a user goes here
         const result = await createUser(username, email, password);
+        console.log("User created with ID:", result);
         if (result) {
-          set((state) => ({ ...state, userId: result.id }) );
+          set((state) => ({
+            ...state,
+            userId: result.lastInsertRowId.toString(),
+          }));
         }
       },
 
       changePassword: async (oldPassword: string, newPassword: string) => {
         const userId = useAuthStore.getState().userId;
         if (!userId) throw new Error("User not logged in");
-        await changeUserPassword(
-          userId,
-          oldPassword,
-          newPassword
-        );
+        await changeUserPassword(userId, oldPassword, newPassword);
       },
 
-      getUserInfo: async () =>  {
+      getUserInfo: async () => {
         const userId = useAuthStore.getState().userId;
         if (!userId) throw new Error("User not logged in");
 

@@ -6,7 +6,7 @@ export const createUser = async (username, email, password) => {
     "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
     [username, email, password]
   );
-  return result.insertId;
+  return result;
 };
 
 export const getAllUsers = async () => {
@@ -54,9 +54,8 @@ export const findUserByCredentials = async (username, password) => {
 
 export const findUserById = async (id) => {
   const db = await dbPromise;
-  const result = await db.getFirstAsync(
-    "SELECT * FROM users WHERE id = ?",
-    [id]
-  );
+  const result = await db.getFirstAsync("SELECT * FROM users WHERE id = ?", [
+    id,
+  ]);
   return result;
 };
