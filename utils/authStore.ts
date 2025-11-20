@@ -1,4 +1,4 @@
-import { createUser } from "@/models/User";
+import { changeUserPassword, createUser, findUserById } from "@/models/User";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { create } from "zustand";
@@ -11,6 +11,9 @@ type UserState = {
   logIn: (username: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
   createUser: (username: string, password: string, email: string) => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  getUserInfo: () => Promise<any>;
+  
 };
 
 export const useAuthStore = create(
@@ -25,15 +28,35 @@ export const useAuthStore = create(
       },
 
       logOut: async () => {
-        set((state) => ({ ...state, userId: null }));
+        set((state) => ({ ...state, userId: null, username: null }));
       },
       createUser: async (username: string, email: string, password: string) => {
         // Implementation for creating a user goes here
         const result = await createUser(username, email, password);
         if (result) {
-          set((state) => ({ ...state, userId: result.id }));
+          set((state) => ({ ...state, userId: result.id }) );
         }
-      }
+      },
+
+      changePassword: async (oldPassword: string, newPassword: string) => {
+        const userId = useAuthStore.getState().userId;
+        if (!userId) throw new Error("User not logged in");
+        await changeUserPassword(
+          userId,
+          oldPassword,
+          newPassword
+        );
+      },
+
+      getUserInfo: async () =>  {
+        const userId = useAuthStore.getState().userId;
+        if (!userId) throw new Error("User not logged in");
+
+        const user = await findUserById(userId);
+        if (!user) throw new Error("User not found");
+
+        return user;
+      },
     }),
     {
       name: "auth-store",

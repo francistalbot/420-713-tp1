@@ -10,6 +10,7 @@ import "react-native-reanimated";
 import { initDatabase } from "../database/initDatabase";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { getAllUsers } from "@/models/User";
 import { useAuthStore } from "@/utils/authStore";
 
 export const unstable_settings = {
@@ -24,6 +25,7 @@ export default function RootLayout() {
     const setupDatabase = async () => {
       try {
         await initDatabase();
+        await getAllUsers(); // Test fetching users to ensure DB is working
         console.log("Base de données initialisée avec succès");
       } catch (error) {
         console.error(

@@ -34,11 +34,29 @@ export const deleteUser = async (id) => {
   return result.changes;
 };
 
+export const changeUserPassword = async (id, oldPassword, newPassword) => {
+  const db = await dbPromise;
+  const result = await db.runAsync(
+    "UPDATE users SET password = ? WHERE id = ? AND password = ?",
+    [newPassword, id, oldPassword]
+  );
+  return result.changes;
+};
+
 export const findUserByCredentials = async (username, password) => {
   const db = await dbPromise;
   const result = await db.getFirstAsync(
     "SELECT * FROM users WHERE username = ? AND password = ?",
     [username, password]
+  );
+  return result;
+};
+
+export const findUserById = async (id) => {
+  const db = await dbPromise;
+  const result = await db.getFirstAsync(
+    "SELECT * FROM users WHERE id = ?",
+    [id]
   );
   return result;
 };
