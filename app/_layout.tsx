@@ -23,6 +23,7 @@ export default function RootLayout() {
   useEffect(() => {
     const setupDatabase = async () => {
       try {
+        // await deleteDatabase(); // For development purposes, to reset the database
         await initDatabase();
         //await getAllUsers(); // Test fetching users to ensure DB is working
         console.log("Base de données initialisée avec succès");
@@ -41,11 +42,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Protected guard={!!userId}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
+          <Stack.Screen name="(main)" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={!userId}>
           <Stack.Screen name="signin" options={{ headerShown: false }} />
