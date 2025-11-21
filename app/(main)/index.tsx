@@ -1,3 +1,4 @@
+import { useAuthStore } from "@/utils/authStore";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -22,14 +23,15 @@ interface Trip {
 }
 
 export default function TripListScreen() {
+  const { userId } = useAuthStore();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-  const userId = 1; // plus tard via AuthContext
 
   const loadTrips = async () => {
     try {
+      if (!userId) return;
       const results = await listTrips(userId);
       setTrips(results);
     } catch (err) {
@@ -55,21 +57,17 @@ export default function TripListScreen() {
   };
 
   const handleDelete = (tripId: number) => {
-    Alert.alert(
-      "Supprimer",
-      "Voulez-vous supprimer ce trajet ?",
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Supprimer",
-          style: "destructive",
-          onPress: async () => {
-            await deleteTrip(tripId);
-            loadTrips();
-          },
+    Alert.alert("Supprimer", "Voulez-vous supprimer ce trajet ?", [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Supprimer",
+        style: "destructive",
+        onPress: async () => {
+          await deleteTrip(tripId);
+          loadTrips();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (loading) {

@@ -1,18 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  Alert,
-  StyleSheet,
-} from "react-native";
+import { useAuthStore } from "@/utils/authStore";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
+import React, { useRef, useState } from "react";
+import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
 import { createTrip } from "../../lib/trips";
 import { addWaypoint } from "../../lib/waypoints";
 
 export default function AddTripScreen() {
+  const { userId } = useAuthStore();
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -78,8 +73,9 @@ export default function AddTripScreen() {
     }
 
     try {
+      if (!userId) return;
       const createdAt = formatDate(new Date());
-      const tripId = await createTrip(name, description, 1);
+      const tripId = await createTrip(name, description, userId);
 
       for (const p of positions) {
         await addWaypoint(tripId, p.latitude, p.longitude);
@@ -87,22 +83,11 @@ export default function AddTripScreen() {
 
       Alert.alert("Succès", "Trajet sauvegardé !");
 
-      // reset
-      setName("");
-      setDescription("");
-      setPositions([]);
-      setElapsed(0);
-      setTrackingCompleted(false);
-
       router.push("/(main)");
     } catch (err) {
       console.error(err);
       Alert.alert("Erreur", "Impossible d'enregistrer le trajet.");
     }
-  };
-
-  const goBack = () => {
-    router.push("/(main)");
   };
 
   return (
@@ -139,14 +124,12 @@ export default function AddTripScreen() {
 
       {trackingCompleted && (
         <>
-          <Text style={styles.info}>
-            {positions.length} points enregistrés
-          </Text>
+          <Text style={styles.info}>{positions.length} points enregistrés</Text>
 
           <Button title="Envoyer le trajet" onPress={sendTrip} />
 
           <View style={{ marginTop: 10 }}>
-            <Button title="Retour" onPress={goBack} />
+            <Button title="Retour" onPress={() => router.push("/(main)")} />
           </View>
         </>
       )}
