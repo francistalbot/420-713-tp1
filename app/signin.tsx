@@ -6,7 +6,7 @@ import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 export default function signin() {
   const { logIn } = useAuthStore();
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
   const handleInputChange = (field: string, value: string) => {
@@ -20,9 +20,11 @@ export default function signin() {
       <Text style={styles.title}>Connexion</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nom d'utilisateur"
-        value={formData.username}
-        onChangeText={(text) => handleInputChange("username", text)}
+        placeholder="Adresse e-mail"
+        value={formData.email}
+        onChangeText={(text) => handleInputChange("email", text)}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}
@@ -34,7 +36,7 @@ export default function signin() {
       <View style={styles.buttonContainer}>
         <Button
           title="Se connecter"
-          onPress={() => logIn(formData.username, formData.password)}
+          onPress={() => logIn(formData.email, formData.password)}
         />
       </View>
       <View style={styles.buttonContainer}>

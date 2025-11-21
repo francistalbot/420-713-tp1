@@ -1,10 +1,10 @@
 import dbPromise from "../database/initDatabase";
 
-export const createUser = async (username, email, password) => {
+export const createUser = async (firstName, lastName, email, password) => {
   const db = await dbPromise;
   const result = await db.runAsync(
-    "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-    [username, email, password]
+    "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)",
+    [firstName, lastName, email, password]
   );
   return result.lastInsertRowId;
 };
@@ -19,11 +19,11 @@ export const getAllUsers = async () => {
   return result;
 };
 
-export const updateUser = async (id, username, password) => {
+export const updateUser = async (id, firstName, lastName) => {
   const db = await dbPromise;
   const result = await db.runAsync(
-    "UPDATE users SET username = ?, password = ? WHERE id = ?",
-    [username, password, id]
+    "UPDATE users SET first_name = ?, last_name = ? WHERE id = ?",
+    [firstName, lastName, id]
   );
   return result.changes;
 };
@@ -48,11 +48,11 @@ export const changeUserPassword = async (id, oldPassword, newPassword) => {
   return result.changes;
 };
 
-export const findUserByCredentials = async (username, password) => {
+export const findUserByCredentials = async (email, password) => {
   const db = await dbPromise;
   const result = await db.getFirstAsync(
-    "SELECT * FROM users WHERE username = ? AND password = ?",
-    [username, password]
+    "SELECT * FROM users WHERE email = ? AND password = ?",
+    [email, password]
   );
   return result;
 };

@@ -8,12 +8,13 @@ const isWeb = Platform.OS === "web";
 
 type UserState = {
   userId: number | null;
-  logIn: (username: string, password: string) => Promise<void>;
+  logIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
   createUser: (
-    username: string,
-    password: string,
-    email: string
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string
   ) => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   getUserInfo: () => Promise<any>;
@@ -23,19 +24,19 @@ export const useAuthStore = create(
   persist<UserState>(
     (set) => ({
       userId: null,
-      logIn: async (username: string, password: string) => {
-        const result = await findUserByCredentials(username, password);
+      logIn: async (email: string, password: string) => {
+        const result = await findUserByCredentials(email, password);
         if (result) {
           set((state) => ({ ...state, userId: result.id }));
         }
       },
 
       logOut: async () => {
-        set((state) => ({ ...state, userId: null, username: null }));
+        set((state) => ({ ...state, userId: null }));
       },
-      createUser: async (username: string, email: string, password: string) => {
+      createUser: async (firstName: string, lastName: string, email: string, password: string) => {
         // Implementation for creating a user goes here
-        const insertId = await createUser(username, email, password);
+        const insertId = await createUser(firstName, lastName, email, password);
         if (insertId) {
           set((state) => ({ ...state, userId: insertId }));
         }
