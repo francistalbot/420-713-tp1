@@ -11,7 +11,8 @@ import {
 } from "react-native";
 
 type FormData = {
-  username: string;
+  firstName: string;
+  lastName: string;
   password: string;
   confirmPassword: string;
   email: string;
@@ -19,7 +20,8 @@ type FormData = {
 };
 
 const initialFormData: FormData = {
-  username: "",
+  firstName: "",
+  lastName: "",
   password: "",
   confirmPassword: "",
   email: "",
@@ -41,12 +43,12 @@ export default function createAccount() {
       handleInputChange("message", "Les mots de passe ne correspondent pas.");
       return;
     }
-    if (!formData.username || !formData.email || !formData.password) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
       handleInputChange("message", "Veuillez remplir tous les champs.");
       return;
     }
 
-    createUser(formData.username, formData.email, formData.password)
+    createUser(formData.firstName, formData.lastName, formData.email, formData.password)
       .then(() => {
         handleInputChange("message", "Compte créé avec succès !");
         router.push("/signin");
@@ -70,9 +72,15 @@ export default function createAccount() {
       )}
       <TextInput
         style={styles.input}
-        placeholder="Nom d'utilisateur"
-        value={formData.username}
-        onChangeText={(text) => handleInputChange("username", text)}
+        placeholder="Prénom"
+        value={formData.firstName}
+        onChangeText={(text) => handleInputChange("firstName", text)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Nom de famille"
+        value={formData.lastName}
+        onChangeText={(text) => handleInputChange("lastName", text)}
       />
       <TextInput
         style={styles.input}

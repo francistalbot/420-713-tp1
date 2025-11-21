@@ -5,7 +5,7 @@ import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 
 
 type FormData = {
-  username: string;
+  email: string;
   password: string;
   message?: string;
 };
@@ -13,7 +13,7 @@ type FormData = {
 export default function signin() {
   const { logIn } = useAuthStore();
   const [formData, setFormData] = useState<FormData>({
-    username: "",
+    email: "",
     password: "",
   });
   const handleInputChange = (field: string, value: string) => {
@@ -24,7 +24,7 @@ export default function signin() {
   };
   const handleLogin = async () => {
     try {
-      await logIn(formData.username, formData.password);
+      await logIn(formData.email, formData.password);
     } catch (error: any) {
       if (error.message == "INVALID_PASSWORD") {
         handleInputChange("message", "Mot de passe invalide.");
@@ -44,9 +44,11 @@ export default function signin() {
       ) : null}
       <TextInput
         style={styles.input}
-        placeholder="Nom d'utilisateur"
-        value={formData.username}
-        onChangeText={(text) => handleInputChange("username", text)}
+        placeholder="Adresse e-mail"
+        value={formData.email}
+        onChangeText={(text) => handleInputChange("email", text)}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
       <TextInput
         style={styles.input}

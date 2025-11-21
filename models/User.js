@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import dbPromise from "../database/initDatabase";
-export const createUser = async (username, email, password) => {
+export const createUser = async (firstName, lastName, email, password) => {
   try {
     const db = await dbPromise;
 
@@ -10,11 +10,11 @@ export const createUser = async (username, email, password) => {
     );
 
     const result = await db.runAsync(
-      "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
-      [username, email.trim().toLowerCase(), hashed]
+      "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)",
+      [firstName, lastName, email.trim().toLowerCase(), hashed]
     );
     const insertId = result.lastInsertRowId;
-    return { success: insertId !== undefined, id: insertId };
+    return { id: insertId };
   } catch (error) {
     if (String(error).includes("UNIQUE")) {
       throw new Error("EMAIL_EXISTS");
@@ -32,6 +32,15 @@ export const getAllUsers = async () => {
   console.log("result", result);
 
   return result;
+};
+
+export const updateUser = async (id, email, password) => {
+  const db = await dbPromise;
+  const result = await db.runAsync(
+    "UPDATE users SET email = ?, password = ? WHERE id = ?",
+    [email, password, id]
+  );
+  return result.changes;
 };
 
 export const deleteUser = async (id) => {
@@ -65,17 +74,18 @@ export const changeUserPassword = async (id, oldPassword, newPassword) => {
   return result.changes;
 };
 
-export const findUserByCredentials = async (username, password) => {
+export const findUserByCredentials = async (email, password) => {
   const db = await dbPromise;
 
   const hashed = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
     password
   );
+  console.log("findUserByCredentials:", email, hashed);
 
   const result = await db.getFirstAsync(
-    "SELECT * FROM users WHERE username = ? AND password = ?",
-    [username, hashed]
+    "SELECT * FROM users WHERE email = ? AND password = ?",
+    [email, hashed]
   );
   console.log("findUserByCredentials result:", result);
   if (!result) {
