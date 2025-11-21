@@ -52,8 +52,13 @@ export default function createAccount() {
         router.push("/signin");
       })
       .catch((error) => {
+        if (error.message === "EMAIL_EXISTS") {
+          handleInputChange(
+            "message", "Cette adresse e-mail est déjà utilisée."
+          );
+          return;
+        }
         handleInputChange("message", "Erreur lors de la création du compte.");
-        console.error("Erreur lors de la création du compte :", error);
       });
   };
 

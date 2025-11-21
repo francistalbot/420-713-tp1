@@ -25,6 +25,7 @@ export const useAuthStore = create(
       userId: null,
       logIn: async (username: string, password: string) => {
         const result = await findUserByCredentials(username, password);
+        console.log("logIn result:", result);
         if (result) {
           set((state) => ({ ...state, userId: result.id }));
         }
@@ -35,9 +36,9 @@ export const useAuthStore = create(
       },
       createUser: async (username: string, email: string, password: string) => {
         // Implementation for creating a user goes here
-        const insertId = await createUser(username, email, password);
-        if (insertId) {
-          set((state) => ({ ...state, userId: insertId }));
+        const result = await createUser(username, email, password);
+        if (result.id) {
+          set((state) => ({ ...state, userId: result.id }));
         }
       },
 

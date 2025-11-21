@@ -3,9 +3,16 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 
+
+type FormData = {
+  username: string;
+  password: string;
+  message?: string;
+};
+
 export default function signin() {
   const { logIn } = useAuthStore();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     username: "",
     password: "",
   });
@@ -15,9 +22,26 @@ export default function signin() {
       [field]: value,
     }));
   };
+  const handleLogin = async () => {
+    try {
+      await logIn(formData.username, formData.password);
+    } catch (error: any) {
+      if (error.message == "INVALID_PASSWORD") {
+        handleInputChange("message", "Mot de passe invalide.");
+        return;
+      }
+      handleInputChange("message", "Erreur de connexion.");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Connexion</Text>
+      {formData.message ? (
+        <Text style={{ color: "red", marginBottom: 15 }}>
+          {formData.message}
+        </Text>
+      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Nom d'utilisateur"
@@ -32,10 +56,7 @@ export default function signin() {
         onChangeText={(text) => handleInputChange("password", text)}
       />
       <View style={styles.buttonContainer}>
-        <Button
-          title="Se connecter"
-          onPress={() => logIn(formData.username, formData.password)}
-        />
+        <Button title="Se connecter" onPress={() => handleLogin()} />
       </View>
       <View style={styles.buttonContainer}>
         <Button
