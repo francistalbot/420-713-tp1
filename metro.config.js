@@ -1,5 +1,6 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require("expo/metro-config");
+const path = require("path");
 
 const config = getDefaultConfig(__dirname);
 
@@ -12,6 +13,18 @@ config.resolver.unstable_conditionNames = [
   "require",
   "react-native",
 ];
+
+// Add alias for react-native-maps on web
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === "react-native-maps" && platform === "web") {
+    return {
+      filePath: path.resolve(__dirname, "react-native-maps.web.js"),
+      type: "sourceFile",
+    };
+  }
+  // Default resolver
+  return context.resolveRequest(context, moduleName, platform);
+};
 
 // Add COEP and COOP headers to support SharedArrayBuffer
 config.server.enhanceMiddleware = (middleware) => {
