@@ -1,11 +1,12 @@
-import React from "react";
-import { Drawer } from "expo-router/drawer";
 import { Ionicons } from "@expo/vector-icons";
+import { Drawer } from "expo-router/drawer";
+import React from "react";
 
 export default function MainLayout() {
   return (
     <Drawer
       screenOptions={{
+        headerShown: true,
         headerStyle: { backgroundColor: "#2b6cb0" },
         headerTintColor: "#fff",
         drawerActiveBackgroundColor: "#bee3f8",
@@ -32,14 +33,22 @@ export default function MainLayout() {
         }}
       />
       <Drawer.Screen
-        name="settings"
+        name="userSetting"
         options={{
-          title: "Paramètres",
+          title: "Paramètres utilisateur",
           drawerIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" color={color} size={size} />
           ),
         }}
       />
+            <Drawer.Screen
+        name="trip/[id]"
+        options={{
+          drawerItemStyle: { display: "none" },
+          title: "Détail du trajet",
+        }}
+      />
+
     </Drawer>
   );
 }
