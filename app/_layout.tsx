@@ -1,40 +1,26 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-import { useEffect } from 'react';
-import { initDatabase } from '../database/initDatabase';
+import { Stack, useRouter, Slot } from "expo-router";
+import { AuthProvider, useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function AuthWrapper() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
-    const setupDatabase = async () => {
-        try {
-          await initDatabase();
-          console.log('Base de données initialisée avec succès');
-        } catch (error) {
-          console.error('Erreur lors de l\'initialisation de la base de données:', error);
-        }
-      };
+    if (loading) return; // on attend SecureStore
+    if (!user) {
+      router.replace("/auth/welcome");
+    }
+  }, [user, loading]);
 
-    setupDatabase();
-  }, []);
+  if (loading) return null; // écran en attendant SecureStore
+  return <Slot />; // continue vers layouts + pages enfants
+}
 
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(main)" options={{ headerShown: false }} />
-
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <AuthProvider>
+      <AuthWrapper />
+    </AuthProvider>
   );
 }

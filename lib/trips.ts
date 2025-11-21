@@ -3,22 +3,27 @@ import dbPromise from "../database/initDatabase";
 // Créer un trajet
 export async function createTrip(name: string, description: string, userId: number) {
   const db = await dbPromise;
-  const res = await db.runAsync(
-    "INSERT INTO trips (name, description, user_id) VALUES (?, ?, ?)",
+
+  const result = await db.runAsync(
+    `INSERT INTO trips (name, description, user_id)
+     VALUES (?, ?, ?);`,
     [name, description, userId]
   );
-  return res.lastInsertRowId as number;
+
+  return result.lastInsertRowId;
 }
 
 // Lister les trajets d’un utilisateur
 export async function listTrips(userId: number) {
   const db = await dbPromise;
-  return db.getAllAsync(
-    `SELECT t.*, 
-            (SELECT COUNT(*) FROM waypoints w WHERE w.trip_id = t.id) as waypoint_count
+
+  return await db.getAllAsync(
+    `SELECT t.*, COUNT(w.id) AS waypoint_count
      FROM trips t
-     WHERE user_id = ?
-     ORDER BY created_at DESC`,
+     LEFT JOIN waypoints w ON w.trip_id = t.id
+     WHERE t.user_id = ?
+     GROUP BY t.id
+     ORDER BY t.created_at DESC;`,
     [userId]
   );
 }

@@ -1,4 +1,17 @@
 import * as SQLite from 'expo-sqlite';
+import * as FileSystem from "expo-file-system";
+
+const DB_NAME = "tp1.db";
+const DB_PATH = `${FileSystem.documentDirectory}SQLite/${DB_NAME}`;
+
+export async function resetDatabase() {
+  try {
+    await FileSystem.deleteAsync(DB_PATH, { idempotent: true });
+    console.log("🔥 Database reset");
+  } catch (e) {
+    console.log("Erreur reset :", e);
+  }
+}
 
 const dbPromise = SQLite.openDatabaseAsync('tp1.db');
 

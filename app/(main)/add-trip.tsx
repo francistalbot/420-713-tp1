@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
+import { useAuth } from "../../context/AuthContext";
 import {
   View,
   Text,
@@ -14,18 +15,20 @@ import { addWaypoint } from "../../lib/waypoints";
 
 export default function AddTripScreen() {
   const router = useRouter();
+
+  // ✅ IMPORTANT : hook au bon endroit
+  const { user } = useAuth();
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isTracking, setIsTracking] = useState(false);
   const [positions, setPositions] = useState<any[]>([]);
   const [trackingCompleted, setTrackingCompleted] = useState(false);
-
-  const [elapsed, setElapsed] = useState(0); // ⏱ compteur en secondes
+  const [elapsed, setElapsed] = useState(0);
 
   const trackingRef = useRef<NodeJS.Timer | null>(null);
   const timerRef = useRef<NodeJS.Timer | null>(null);
 
-  // Format date yyyy-MM-dd HH:mm:ss
   const formatDate = (d: Date) =>
     d.toISOString().slice(0, 19).replace("T", " ");
 
@@ -46,12 +49,10 @@ export default function AddTripScreen() {
     setIsTracking(true);
     setElapsed(0);
 
-    // démarrer le compteur
     timerRef.current = setInterval(() => {
       setElapsed((prev) => prev + 1);
     }, 1000);
 
-    // démarrer le tracking GPS (1 point toutes les 5 secondes)
     trackingRef.current = setInterval(async () => {
       const loc = await Location.getCurrentPositionAsync({});
       const point = {
@@ -78,31 +79,23 @@ export default function AddTripScreen() {
     }
 
     try {
-      const createdAt = formatDate(new Date());
-      const tripId = await createTrip(name, description, 1);
+      if (!user) {
+        Alert.alert("Erreur", "Utilisateur non connecté.");
+        return;
+      }
+
+      const tripId = await createTrip(name, description, user.id);
 
       for (const p of positions) {
         await addWaypoint(tripId, p.latitude, p.longitude);
       }
 
       Alert.alert("Succès", "Trajet sauvegardé !");
-
-      // reset
-      setName("");
-      setDescription("");
-      setPositions([]);
-      setElapsed(0);
-      setTrackingCompleted(false);
-
       router.push("/(main)");
     } catch (err) {
       console.error(err);
       Alert.alert("Erreur", "Impossible d'enregistrer le trajet.");
     }
-  };
-
-  const goBack = () => {
-    router.push("/(main)");
   };
 
   return (
@@ -124,7 +117,6 @@ export default function AddTripScreen() {
         onChangeText={setDescription}
       />
 
-      {/* Compteur visible seulement pendant le tracking */}
       {isTracking && (
         <Text style={styles.counter}>Temps écoulé : {elapsed}s</Text>
       )}
@@ -146,7 +138,7 @@ export default function AddTripScreen() {
           <Button title="Envoyer le trajet" onPress={sendTrip} />
 
           <View style={{ marginTop: 10 }}>
-            <Button title="Retour" onPress={goBack} />
+            <Button title="Retour" onPress={() => router.push("/(main)")} />
           </View>
         </>
       )}

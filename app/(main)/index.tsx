@@ -1,6 +1,6 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useAuth } from "../../context/AuthContext";
 import { deleteTrip, listTrips } from "../../lib/trips";
 
 interface Trip {
@@ -26,11 +27,16 @@ export default function TripListScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
-  const userId = 1; // plus tard via AuthContext
 
+  useEffect(() => {
+    if (!user) return;
+    loadTrips();
+  }, [user]);
+  
+  const { user } = useAuth();
   const loadTrips = async () => {
     try {
-      const results = await listTrips(userId);
+      const results = await listTrips(user.id);
       setTrips(results);
     } catch (err) {
       console.error(err);
@@ -41,7 +47,7 @@ export default function TripListScreen() {
     }
   };
 
-  // 🔥 Rafraîchit la page automatiquement à chaque retour sur l'écran
+  // Rafraîchit la page automatiquement à chaque retour sur l'écran
   useFocusEffect(
     useCallback(() => {
       loadTrips();

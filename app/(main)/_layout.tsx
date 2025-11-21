@@ -1,43 +1,60 @@
-import React from "react";
 import { Drawer } from "expo-router/drawer";
-import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../context/AuthContext";
 
 export default function MainLayout() {
+  const { user } = useAuth();
+
+  // 👇 Sécurité : si pas connecté → redirection assurée par AuthWrapper
+  if (!user) return null;
+
   return (
     <Drawer
       screenOptions={{
-        headerStyle: { backgroundColor: "#2b6cb0" },
-        headerTintColor: "#fff",
-        drawerActiveBackgroundColor: "#bee3f8",
-        drawerActiveTintColor: "#2b6cb0",
-        drawerLabelStyle: { fontSize: 16 },
+        headerShown: true,
       }}
     >
+      {/* Liste des trajets */}
       <Drawer.Screen
         name="index"
         options={{
+          drawerLabel: "Liste des trajets",
           title: "Liste des trajets",
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="list-outline" color={color} size={size} />
-          ),
         }}
       />
+
+      {/* Ajouter un trajet */}
       <Drawer.Screen
         name="add-trip"
         options={{
+          drawerLabel: "Ajouter un trajet",
           title: "Ajouter un trajet",
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="add-circle-outline" color={color} size={size} />
-          ),
         }}
       />
+
+      {/* Détail trajet (pas visible dans le menu) */}
       <Drawer.Screen
-        name="settings"
+        name="trip/[id]"
         options={{
-          title: "Paramètres",
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" color={color} size={size} />
-          ),
+          drawerLabel: () => null,
+          title: "Détail du trajet",
+        }}
+      />
+
+      {/* Profil */}
+      <Drawer.Screen
+        name="profile"  
+        options={{
+          drawerLabel: "Profil",
+          title: "Mon Profil",
+        }}
+      />  
+      
+      {/* Déconnexion */}
+      <Drawer.Screen
+        name="logout"
+        options={{
+          drawerLabel: "Déconnexion",
+          title: "Déconnexion",
         }}
       />
     </Drawer>
