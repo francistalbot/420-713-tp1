@@ -1,6 +1,14 @@
 import * as SQLite from "expo-sqlite";
 
-let dbPromise = SQLite.openDatabaseAsync("tp1.db");
+const DATABASE_NAME = "tp1.db";
+let dbPromise = SQLite.openDatabaseAsync(DATABASE_NAME);
+
+export const deleteDatabase = async () => {
+  const db = await dbPromise;
+  await db.execAsync("DROP TABLE IF EXISTS users;");
+  await db.execAsync("DROP TABLE IF EXISTS trips;");
+  await db.execAsync("DROP TABLE IF EXISTS waypoints;");
+};
 
 export const initDatabase = async () => {
   const db = await dbPromise;
