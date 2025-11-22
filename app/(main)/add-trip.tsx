@@ -17,13 +17,23 @@ export default function AddTripScreen() {
 
   const [elapsed, setElapsed] = useState(0); // ⏱ compteur en secondes
 
-  const trackingRef = useRef<NodeJS.Timer | null>(null);
-  const timerRef = useRef<NodeJS.Timer | null>(null);
+  const trackingRef = useRef<number| null>(null);
+  const timerRef = useRef<number | null>(null);
 
   // Format date yyyy-MM-dd HH:mm:ss
   const formatDate = (d: Date) =>
     d.toISOString().slice(0, 19).replace("T", " ");
 
+    const capturePosition = async () => {
+      const loc = await Location.getCurrentPositionAsync({});
+      const point = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+        timestamp: formatDate(new Date()),
+      };
+      setPositions((prev) => [...prev, point]);
+    };
+    
   const startTracking = async () => {
     if (!name.trim()) {
       Alert.alert("Erreur", "Veuillez saisir un nom de trajet.");
@@ -40,25 +50,20 @@ export default function AddTripScreen() {
     setTrackingCompleted(false);
     setIsTracking(true);
     setElapsed(0);
-
+    capturePosition(); // capturer immédiatement la première position
+    
     // démarrer le compteur
     timerRef.current = setInterval(() => {
       setElapsed((prev) => prev + 1);
     }, 1000);
 
     // démarrer le tracking GPS (1 point toutes les 5 secondes)
-    trackingRef.current = setInterval(async () => {
-      const loc = await Location.getCurrentPositionAsync({});
-      const point = {
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-        timestamp: formatDate(new Date()),
-      };
-      setPositions((prev) => [...prev, point]);
-    }, 5000);
-  };
-
+    trackingRef.current = setInterval(capturePosition, 5000);
+    };
+  
   const stopTracking = () => {
+    capturePosition(); // capturer la dernière position
+
     if (trackingRef.current) clearInterval(trackingRef.current);
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -69,6 +74,7 @@ export default function AddTripScreen() {
   const sendTrip = async () => {
     if (positions.length < 1) {
       Alert.alert("Erreur", "Aucun point GPS enregistré.");
+      setTrackingCompleted(false);
       return;
     }
 
