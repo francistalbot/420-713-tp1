@@ -3,16 +3,20 @@ import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, useColorScheme, View } from "react-native";
 
 // Composant personnalisé pour le contenu du drawer
 function CustomDrawerContent(props: any) {
   const router = useRouter();
   
+   const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   return (
     <View style={styles.drawerContainer}>
       {/* En-tête avec titre et logo */}
-      <View style={styles.headerSection}>
+      <View style={[styles.headerSection, {backgroundColor: isDark ? "#1a202c" : "#f8fafc"},{
+    borderTopColor: !isDark ? "#e2e8f0" : "transparent"}]}>
         <View style={styles.logoContainer}>
           <Ionicons name="map" size={32} color="#2b6cb0" />
           <Text style={styles.appTitle}>RouteTracker</Text>
@@ -42,7 +46,7 @@ function CustomDrawerContent(props: any) {
       </DrawerContentScrollView>
       
       {/* Bouton de paramètres en bas */}
-      <View style={styles.bottomSection}>
+      <View style={[styles.bottomSection,{borderTopColor: !isDark ? "#e2e8f0" : "transparent"}]}>
         <DrawerItem
           label="Paramètres utilisateur"
           onPress={() => router.push("/(main)/userSetting")}
@@ -57,17 +61,20 @@ function CustomDrawerContent(props: any) {
 }
 
 export default function MainLayout() {
+
   return (
     <Drawer
       drawerContent={CustomDrawerContent}
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: "#2b6cb0" },
+        headerStyle: { 
+          backgroundColor: "#2b6cb0" 
+        },
         headerTitleStyle: { fontWeight: "bold" },
         headerTintColor: "#fff",
         drawerActiveBackgroundColor: "#bee3f8",
         drawerActiveTintColor: "#2b6cb0",
-        headerTitle: "RouteTrackerBLABLSD",
+        headerTitle: "RouteTracker",
       }}
     >
       <Drawer.Screen
@@ -99,14 +106,24 @@ export default function MainLayout() {
         options={{
           drawerItemStyle: { display: "none" },
           title: "Détail du trajet",
-          headerTitle: "Détails",
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="map" size={30} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>Détails</Text>
+            </View>
+          ),
         }}
       />
       <Drawer.Screen
         name="userSetting"
         options={{
           title: "Paramètres",
-          headerTitle: "Paramètres",
+          headerTitle: () => (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="map" size={30} color="#fff" style={{ marginRight: 8 }} />
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}> Paramètres</Text>
+            </View>
+          ),
           drawerItemStyle: { display: "none" }, // Caché car géré dans le drawer personnalisé
         }}
       />
@@ -117,13 +134,13 @@ export default function MainLayout() {
 const styles = StyleSheet.create({
   drawerContainer: {
     flex: 1,
+    paddingTop: Platform.OS !== "web" ? 60 : 0,
+
   },
   headerSection: {
-    backgroundColor: "#f8fafc",
     paddingVertical: 30,
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
+      borderBottomWidth: 1,
     alignItems: "center",
   },
   logoContainer: {
