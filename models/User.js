@@ -34,12 +34,17 @@ export const getAllUsers = async () => {
   return result;
 };
 
-export const updateUser = async (id, email, password) => {
+export const updateUserProfile = async (id, first_name, last_name, email) => {
   const db = await dbPromise;
   const result = await db.runAsync(
-    "UPDATE users SET email = ?, password = ? WHERE id = ?",
-    [email, password, id]
+    "UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE id = ?",
+    [first_name, last_name, email, id]
   );
+  
+    if (result.changes === 0) {
+      throw new Error("UPDATE_FAILED");
+    }
+    
   return result.changes;
 };
 
@@ -81,15 +86,12 @@ export const findUserByCredentials = async (email, password) => {
     Crypto.CryptoDigestAlgorithm.SHA256,
     password
   );
-  console.log("findUserByCredentials:", email, hashed);
 
   const result = await db.getFirstAsync(
     "SELECT * FROM users WHERE email = ? AND password = ?",
     [email, hashed]
   );
-  console.log("findUserByCredentials result:", result);
   if (!result) {
-    console.log("No user found with the provided credentials.");
     throw new Error("INVALID_PASSWORD");
   }
 
@@ -97,9 +99,13 @@ export const findUserByCredentials = async (email, password) => {
 };
 
 export const findUserById = async (id) => {
+  try{
   const db = await dbPromise;
   const result = await db.getFirstAsync("SELECT * FROM users WHERE id = ?", [
     id,
   ]);
   return result;
+} catch (error) {
+   throw new Error("USER_NOT_FOUND");
+}
 };

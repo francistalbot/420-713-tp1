@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/utils/authStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   ScrollView,
@@ -10,8 +10,45 @@ import {
 } from "react-native";
 
 export default function userSetting() {
-  const { logOut, changePassword } = useAuthStore();
+  const { logOut, changePassword, getUserInfo, modifyUserInfo } = useAuthStore();
 
+  const [userInfo, setUserInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const info = await getUserInfo();
+      console.log("Fetched user info:", info);
+      setUserInfo(info);
+    };
+    fetchUserInfo();
+  }, []);
+
+  const handleProfileInputChange = (field: string, value: string) => {
+    setUserInfo((prev: any) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+  const handleProfileChange = async () => {
+    if (!userInfo.first_name || !userInfo.last_name || !userInfo.email) return;
+    try {
+      await modifyUserInfo(
+        userInfo.first_name,
+        userInfo.last_name,
+        userInfo.email
+      );
+      setUserInfo((prev: any) => ({
+        ...prev,
+        message: "Informations mises à jour avec succès.",
+      }));
+    } catch (error) {
+      setUserInfo((prev: any) => ({
+        ...prev,
+        message: "Une erreur est survenue lors de la mise à jour des informations.",
+      }));
+    }
+  };
+  
   const [passwordForm, setPasswordForm] = useState({
     message: null as string | null,
     oldPassword: "",
@@ -19,16 +56,16 @@ export default function userSetting() {
     confirmNewPassword: "",
   });
 
-  const handleInputChange = (field: string, value: string) => {
+  const handlePasswordInputChange = (field: string, value: string) => {
     setPasswordForm((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const modifyPassword = async () => {
+  const handlePasswordChange = async () => {
     if (passwordForm.newPassword !== passwordForm.confirmNewPassword) {
-      handleInputChange(
+      handlePasswordInputChange(
         "message",
         "Les nouveaux mots de passe ne correspondent pas."
       );
@@ -43,7 +80,7 @@ export default function userSetting() {
         confirmNewPassword: "",
       });
     } catch (error: any) {
-      handleInputChange(
+      handlePasswordInputChange(
         "message",
         error.message || "Erreur lors du changement de mot de passe"
       );
@@ -53,8 +90,43 @@ export default function userSetting() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Paramètres Utilisateur</Text>
-
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Informations Utilisateur</Text>
+        {userInfo?.message && (
+          <Text style={styles.message}>{userInfo.message}</Text>
+        )}
+          <TextInput
+            style={[styles.input]}
+            value={userInfo?.first_name}
+            onChangeText={(value) => handleProfileInputChange('first_name', value)}
+            placeholder="Votre prénom"
+            autoCapitalize="words"
+          />
+
+          <TextInput
+            style={[styles.input]}
+            value={userInfo?.last_name}
+            onChangeText={(value) => handleProfileInputChange('last_name', value)}
+            placeholder="Votre nom"
+            autoCapitalize="words"
+          />
+    
+          <TextInput
+            style={[styles.input, styles.inputDisabled]}
+            value={userInfo?.email}
+            onChangeText={(value) => handleProfileInputChange('email', value)}
+            placeholder="votre@email.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={false}
+            autoCorrect={false}
+          />
+        <View style={styles.buttonContainer}>
+          <Button title="Changer le mot de passe" onPress={handleProfileChange} />
+        </View>
+      </View>
+      <View style={styles.section}>
+        
         <Text style={styles.sectionTitle}>Changer le mot de passe</Text>
         {passwordForm.message && (
           <Text style={styles.message}>{passwordForm.message}</Text>
@@ -64,14 +136,14 @@ export default function userSetting() {
           placeholder="Ancien mot de passe"
           secureTextEntry={true}
           value={passwordForm.oldPassword}
-          onChangeText={(value) => handleInputChange("oldPassword", value)}
+          onChangeText={(value) => handlePasswordInputChange("oldPassword", value)}
         />
         <TextInput
           style={styles.input}
           placeholder="Nouveau mot de passe"
           secureTextEntry={true}
           value={passwordForm.newPassword}
-          onChangeText={(value) => handleInputChange("newPassword", value)}
+          onChangeText={(value) => handlePasswordInputChange("newPassword", value)}
         />
         <TextInput
           style={styles.input}
@@ -79,11 +151,11 @@ export default function userSetting() {
           secureTextEntry={true}
           value={passwordForm.confirmNewPassword}
           onChangeText={(value) =>
-            handleInputChange("confirmNewPassword", value)
+            handlePasswordInputChange("confirmNewPassword", value)
           }
         />
         <View style={styles.buttonContainer}>
-          <Button title="Changer le mot de passe" onPress={modifyPassword} />
+          <Button title="Changer le mot de passe" onPress={handlePasswordChange} />
         </View>
       </View>
 
@@ -128,6 +200,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ddd",
+  },
+  inputDisabled: {
+    backgroundColor: "#e8e8e8",
+    color: "#999",
+    borderColor: "#ccc",
   },
   message: {
     textAlign: "center",

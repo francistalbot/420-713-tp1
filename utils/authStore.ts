@@ -1,4 +1,4 @@
-import { changeUserPassword, createUser, findUserById } from "@/models/User";
+import { changeUserPassword, createUser, findUserById, updateUserProfile } from "@/models/User";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { create } from "zustand";
@@ -18,6 +18,7 @@ type UserState = {
   ) => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   getUserInfo: () => Promise<any>;
+  modifyUserInfo: (firstName: string, lastName: string, email: string) => Promise<void>;
 };
 
 export const useAuthStore = create(
@@ -54,8 +55,13 @@ export const useAuthStore = create(
 
         const user = await findUserById(userId);
         if (!user) throw new Error("User not found");
-
         return user;
+      },
+      modifyUserInfo: async (firstName: string, lastName: string, email: string) => {
+        const userId = useAuthStore.getState().userId;
+        if (!userId) throw new Error("User not logged in");
+        await updateUserProfile(userId, firstName, lastName, email);
+      
       },
     }),
     {
