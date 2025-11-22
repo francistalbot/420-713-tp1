@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/utils/authStore";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
@@ -36,6 +37,15 @@ export default function signin() {
 
   return (
     <View style={styles.container}>
+       {/* En-tête avec titre et logo - même style que le drawer */}
+      <View style={[styles.headerSection, { backgroundColor:  "#f8fafc" }]}>
+        <View style={styles.logoContainer}>
+          <Ionicons name="map" size={40} color="#2b6cb0" />
+          <Text style={styles.appTitle}>RouteTracker</Text>
+        </View>
+        <Text style={styles.appSubtitle}>Enregistrez vos itinéraires</Text>
+      </View>
+
       <Text style={styles.title}>Connexion</Text>
       {formData.message ? (
         <Text style={{ color: "red", marginBottom: 15 }}>
@@ -77,11 +87,36 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#f5f5f5",
   },
+  headerSection: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    paddingTop: 60, // Plus d'espace en haut pour la page signin
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    alignItems: "center",
+    marginBottom: 30,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: "bold",
     marginBottom: 30,
     textAlign: "center",
+  },
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  appTitle: {
+    fontSize: 28, // Légèrement plus grand pour la page signin
+    fontWeight: "bold",
+    color: "#2b6cb0",
+    marginLeft: 12,
+  },
+  appSubtitle: {
+    fontSize: 16, // Légèrement plus grand pour la page signin
+    color: "#64748b",
+    fontStyle: "italic",
   },
   input: {
     backgroundColor: "white",
@@ -94,5 +129,25 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginVertical: 8,
+  }, 
+  button: {
+    backgroundColor: "#2b6cb0",
+    borderRadius: 10,
+    padding: 15,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  linkButton: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  linkText: {
+    color: "#2b6cb0",
+    fontSize: 16,
   },
 });
