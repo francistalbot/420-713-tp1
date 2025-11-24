@@ -16,7 +16,6 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
-const isLoggedIn = false;
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
