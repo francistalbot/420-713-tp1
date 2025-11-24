@@ -15,7 +15,8 @@ function CustomDrawerContent(props: any) {
   return (
     <View style={styles.drawerContainer}>
       {/* En-tête avec titre et logo */}
-      <View style={[styles.headerSection, ]}>
+      <View style={[styles.headerSection, {backgroundColor: isDark ? "#1a202c" : "#f8fafc"},{
+    borderTopColor: !isDark ? "#e2e8f0" : "transparent"}]}>
         <View style={styles.logoContainer}>
           <Ionicons name="map" size={32} color="#2b6cb0" />
           <Text style={styles.appTitle}>RouteTracker</Text>
