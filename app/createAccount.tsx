@@ -1,5 +1,8 @@
 import { useAuthStore } from "@/utils/authStore";
 import { router } from "expo-router";
+import { auth, db } from "../lib/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { setDoc, doc } from "firebase/firestore";
 import { useState } from "react";
 import {
   Button,

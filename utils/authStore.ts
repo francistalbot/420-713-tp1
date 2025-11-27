@@ -1,79 +1,78 @@
-import { changeUserPassword, createUser, findUserById, updateUserProfile } from "@/models/User";
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
+// utils/authStore.ts
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
-import { findUserByCredentials } from "../models/User";
-const isWeb = Platform.OS === "web";
+import { auth, db } from "@/lib/firebaseConfig";
+import { 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { router } from "expo-router";
 
-type UserState = {
-  userId: number | null;
-  logIn: (email: string, password: string) => Promise<void>;
-  logOut: () => Promise<void>;
-  createUser: (
-    firstName: string,
-    lastName: string,
-    email: string,
-    password: string
-  ) => Promise<void>;
-  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
-  getUserInfo: () => Promise<any>;
-  modifyUserInfo: (firstName: string, lastName: string, email: string) => Promise<void>;
-};
+export const useAuthStore = create((set, get) => ({
+  user: null,         // user Firebase (uid, email, etc.)
+  profile: null,      // user Firestore (firstName, lastName…)
 
-export const useAuthStore = create(
-  persist<UserState>(
-    (set) => ({
-      userId: null,
-      logIn: async (email: string, password: string) => {
-        const result = await findUserByCredentials(email, password);
-        if (result) {
-          set((state) => ({ ...state, userId: result.id }));
-        }
-      },
+  /** Écouteur automatique au démarrage */
+  initAuth: () => {
+    onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        set({ user: null, profile: null });
+        router.replace("/(main)/trip/signin"); 
+        return;
+      }
 
-      logOut: async () => {
-        set((state) => ({ ...state, userId: null }));
-      },
-      createUser: async (firstName: string, lastName: string, email: string, password: string) => {
-        // Implementation for creating a user goes here
-        const result = await createUser(firstName, lastName, email, password);
-        if (result.id) {
-          set((state) => ({ ...state, userId: result.id }));
-        }
-      },
+      set({ user: firebaseUser });
 
-      changePassword: async (oldPassword: string, newPassword: string) => {
-        const userId = useAuthStore.getState().userId;
-        if (!userId) throw new Error("User not logged in");
-        await changeUserPassword(userId, oldPassword, newPassword);
-      },
+      // Charger le profil Firestore
+      const userRef = doc(db, "users", firebaseUser.uid);
+      const snapshot = await getDoc(userRef);
 
-      getUserInfo: async () => {
-        const userId = useAuthStore.getState().userId;
-        if (!userId) throw new Error("User not logged in");
+      if (snapshot.exists()) {
+        set({ profile: snapshot.data() });
+      }
 
-        const user = await findUserById(userId);
-        if (!user) throw new Error("User not found");
-        return user;
-      },
-      modifyUserInfo: async (firstName: string, lastName: string, email: string) => {
-        const userId = useAuthStore.getState().userId;
-        if (!userId) throw new Error("User not logged in");
-        await updateUserProfile(userId, firstName, lastName, email);
-      
-      },
-    }),
-    {
-      name: "auth-store",
-      storage: isWeb
-        ? createJSONStorage(() => localStorage)
-        : createJSONStorage(() => ({
-            setItem: (key: string, value: string) =>
-              SecureStore.setItemAsync(key, value),
-            getItem: (key: string) => SecureStore.getItemAsync(key),
-            removeItem: (key: string) => SecureStore.deleteItemAsync(key),
-          })),
+      router.replace("/(main)/trip"); 
+    });
+  },
+
+  /** Inscription */
+  signUp: async (firstName, lastName, email, password) => {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+    await setDoc(doc(db, "users", cred.user.uid), {
+      uid: cred.user.uid,
+      firstName,
+      lastName,
+      email: email.toLowerCase().trim(),
+      createdAt: new Date(),
+    });
+
+    set({ user: cred.user });
+    router.replace("/(main)/trip");
+  },
+
+  /** Connexion */
+  logIn: async (email, password) => {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+
+    set({ user: cred.user });
+
+    const userRef = doc(db, "users", cred.user.uid);
+    const snapshot = await getDoc(userRef);
+
+    if (snapshot.exists()) {
+      set({ profile: snapshot.data() });
     }
-  )
-);
+
+    router.replace("/(main)/trip");
+  },
+
+  /** Déconnexion */
+  logOut: async () => {
+    await signOut(auth);
+    set({ user: null, profile: null });
+    router.replace("/(main)/trip/signin");
+  },
+}));

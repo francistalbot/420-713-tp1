@@ -4,41 +4,31 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 
-
-type FormData = {
-  email: string;
-  password: string;
-  message?: string;
-};
-
-export default function signin() {
+export default function Signin() {
   const { logIn } = useAuthStore();
-  const [formData, setFormData] = useState<FormData>({
-    email: "",
-    password: "",
-  });
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState("");
+
   const handleLogin = async () => {
     try {
-      await logIn(formData.email, formData.password);
+      await logIn(email, password);
     } catch (error: any) {
-      if (error.message == "INVALID_PASSWORD") {
-        handleInputChange("message", "Mot de passe invalide.");
+      console.log(error);
+
+      if (error.code === "auth/invalid-credential") {
+        setMsg("Email ou mot de passe incorrect.");
         return;
       }
-      handleInputChange("message", "Erreur de connexion.");
+
+      setMsg("Erreur de connexion.");
     }
   };
 
   return (
     <View style={styles.container}>
-       {/* En-tête avec titre et logo - même style que le drawer */}
-      <View style={[styles.headerSection, { backgroundColor:  "#f8fafc" }]}>
+      <View style={styles.headerSection}>
         <View style={styles.logoContainer}>
           <Ionicons name="map" size={40} color="#2b6cb0" />
           <Text style={styles.appTitle}>RouteTracker</Text>
@@ -47,30 +37,28 @@ export default function signin() {
       </View>
 
       <Text style={styles.title}>Connexion</Text>
-      {formData.message ? (
-        <Text style={{ color: "red", marginBottom: 15 }}>
-          {formData.message}
-        </Text>
-      ) : null}
+
+      {msg !== "" && <Text style={{ color: "red" }}>{msg}</Text>}
+
       <TextInput
         style={styles.input}
         placeholder="Adresse e-mail"
-        value={formData.email}
-        onChangeText={(text) => handleInputChange("email", text)}
-        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
         autoCapitalize="none"
       />
+
       <TextInput
         style={styles.input}
         placeholder="Mot de passe"
-        secureTextEntry={true}
-        value={formData.password}
-        onChangeText={(text) => handleInputChange("password", text)}
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
       />
-      <View style={styles.buttonContainer}>
-        <Button title="Se connecter" onPress={() => handleLogin()} />
-      </View>
-      <View style={styles.buttonContainer}>
+
+      <Button title="Se connecter" onPress={handleLogin} />
+
+      <View style={{ marginTop: 10 }}>
         <Button
           title="Créer un compte"
           onPress={() => router.push("/createAccount")}
