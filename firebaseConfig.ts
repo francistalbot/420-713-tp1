@@ -21,14 +21,11 @@ const firebaseConfig = {
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export let auth = getAuth(app);
-if (__DEV__) {
-  connectAuthEmulator(auth, "http://localhost:9099");
-  console.log("Auth connecté à l'émulateur local");
-}
 export let db = getFirestore(app);
-console.log("Initialisation de Firestore");
-console.log("Valeur de __DEV__ :", __DEV__);
+
+
 if (__DEV__) {
   connectFirestoreEmulator(db, "localhost", 8080);
+  connectAuthEmulator(auth, "http://localhost:9099");
   console.log("Firestore connecté à l'émulateur local");
 }
