@@ -14,17 +14,6 @@ export const initDatabase = async () => {
   const db = await dbPromise;
 
   await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      first_name TEXT NOT NULL,
-      last_name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS trips (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -34,7 +23,7 @@ export const initDatabase = async () => {
       user_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME,
-      sync BOOLEAN DEFAULT false,
+      sync BOOLEAN DEFAULT false
     );
   `);
 

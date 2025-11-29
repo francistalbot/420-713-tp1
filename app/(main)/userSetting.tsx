@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/utils/authStore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Button,
   ScrollView,
@@ -10,18 +10,10 @@ import {
 } from "react-native";
 
 export default function userSetting() {
-  const { logOut, changePassword, getUserInfo, modifyUserInfo } = useAuthStore();
+  const { logOut } = useAuthStore();
 
   const [userInfo, setUserInfo] = useState<any>(null);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const info = await getUserInfo();
-      console.log("Fetched user info:", info);
-      setUserInfo(info);
-    };
-    fetchUserInfo();
-  }, []);
 
   const handleProfileInputChange = (field: string, value: string) => {
     setUserInfo((prev: any) => ({
@@ -32,11 +24,7 @@ export default function userSetting() {
   const handleProfileChange = async () => {
     if (!userInfo.first_name || !userInfo.last_name || !userInfo.email) return;
     try {
-      await modifyUserInfo(
-        userInfo.first_name,
-        userInfo.last_name,
-        userInfo.email
-      );
+      //await modifyUserInfo(userInfo.first_name,userInfo.last_name,userInfo.email);
       setUserInfo((prev: any) => ({
         ...prev,
         message: "Informations mises à jour avec succès.",
@@ -72,7 +60,7 @@ export default function userSetting() {
       return;
     }
     try {
-      await changePassword(passwordForm.oldPassword, passwordForm.newPassword);
+     // await changePassword(passwordForm.oldPassword, passwordForm.newPassword);
       setPasswordForm({
         message: "Mot de passe changé avec succès.",
         oldPassword: "",

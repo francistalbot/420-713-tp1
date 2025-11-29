@@ -1,8 +1,5 @@
 import { useAuthStore } from "@/utils/authStore";
 import { router } from "expo-router";
-import { auth, db } from "../lib/firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
 import { useState } from "react";
 import {
   Button,
@@ -31,7 +28,7 @@ const initialFormData: FormData = {
 };
 
 export default function createAccount() {
-  const { createUser } = useAuthStore();
+  const { signUp } = useAuthStore();
   const [formData, setFormData] = useState<FormData>(initialFormData);
 
   const handleInputChange = (field: string, value: string) => {
@@ -51,18 +48,8 @@ export default function createAccount() {
       return;
     }
 
-    createUser(formData.firstName, formData.lastName, formData.email, formData.password)
-      .then(() => {
-        handleInputChange("message", "Compte créé avec succès !");
-        router.push("/signin");
-      })
-      .catch((error) => {
-        if (error.message === "EMAIL_EXISTS") {
-          handleInputChange(
-            "message", "Cette adresse e-mail est déjà utilisée."
-          );
-          return;
-        }
+    signUp(formData.firstName, formData.lastName, formData.email, formData.password)
+      .catch((error: any) => { 
         handleInputChange("message", "Erreur lors de la création du compte.");
       });
   };

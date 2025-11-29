@@ -23,7 +23,7 @@ interface Trip {
 }
 
 export default function TripListScreen() {
-  const { userId } = useAuthStore();
+  const { user } = useAuthStore();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,9 +31,9 @@ export default function TripListScreen() {
 
   const loadTrips = async () => {
     try {
-      if (!userId) return;
-      const results = await listTrips(userId);
-      setTrips(results);
+      if (!user) return;
+      const results = await listTrips(user);
+      setTrips(results as any[]);
     } catch (err) {
       console.error(err);
       Alert.alert("Erreur", "Impossible de charger les trajets.");

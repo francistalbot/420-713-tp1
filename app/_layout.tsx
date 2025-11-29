@@ -22,9 +22,7 @@ export default function RootLayout() {
   useEffect(() => {
     const setupDatabase = async () => {
       try {
-        // await deleteDatabase(); // For development purposes, to reset the database
         await initDatabase();
-       // await getAllUsers(); // Test fetching users to ensure DB is working
         console.log("Base de données initialisée avec succès");
       } catch (error) {
         console.error(
@@ -35,15 +33,16 @@ export default function RootLayout() {
     };
 
     setupDatabase();
+    useAuthStore.getState().initAuth();
   }, []);
-  const { userId } = useAuthStore();
+  const { user } = useAuthStore();
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
-        <Stack.Protected guard={!!userId}>
+        <Stack.Protected guard={!!user}>
           <Stack.Screen name="(main)" options={{ headerShown: false }} />
         </Stack.Protected>
-        <Stack.Protected guard={!userId}>
+        <Stack.Protected guard={!user}>
           <Stack.Screen name="signin" options={{ headerShown: false }} />
           <Stack.Screen name="createAccount" options={{ headerShown: false }} />
         </Stack.Protected>
