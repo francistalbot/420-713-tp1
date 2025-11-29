@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { connectAuthEmulator, getAuth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBXg0pPRoVAx3AWMCmMLvkx-OCq9uSX3q4",
@@ -11,7 +11,14 @@ const firebaseConfig = {
   appId: "1:618435124408:web:12b958fd32c01acd5b684d",
 };
 
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase
+export const app = initializeApp(firebaseConfig);
+export let auth = getAuth(app);
+export let db = getFirestore(app);
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+if (__DEV__) {
+  connectFirestoreEmulator(db, "localhost", 8080);
+  connectAuthEmulator(auth, "http://localhost:9099");
+  console.log("Firestore connecté à l'émulateur local");
+}
