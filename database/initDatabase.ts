@@ -28,10 +28,13 @@ export const initDatabase = async () => {
     CREATE TABLE IF NOT EXISTS trips (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      positions_count INTEGER DEFAULT 0,
       description TEXT,
       user_id INTEGER NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id)
+      updated_at DATETIME,
+      sync BOOLEAN DEFAULT false,
     );
   `);
 
