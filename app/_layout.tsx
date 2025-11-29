@@ -7,7 +7,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
-import { initDatabase } from "../database/initDatabase";
+import { deleteDatabase, initDatabase } from "../database/initDatabase";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/utils/authStore";
@@ -18,10 +18,12 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { user, initAuth } = useAuthStore();
 
   useEffect(() => {
     const setupDatabase = async () => {
       try {
+        await deleteDatabase();
         await initDatabase();
         console.log("Base de données initialisée avec succès");
       } catch (error) {
@@ -31,11 +33,10 @@ export default function RootLayout() {
         );
       }
     };
-
     setupDatabase();
-    useAuthStore.getState().initAuth();
+    const unsubscribe = initAuth();
+    return unsubscribe;
   }, []);
-  const { user } = useAuthStore();
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>

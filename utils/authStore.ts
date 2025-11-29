@@ -11,23 +11,29 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { create } from "zustand";
 
 type AuthStore = {
-  user: any;    // user Firebase (uid, email, etc.)
+  user: any; // user Firebase (uid, email, etc.)
   profile: any; // user Firestore (firstName, lastName…)
   initAuth: () => void;
-  signUp: (firstName:string,  lastName:string, email:string, password:string) => Promise<void>;
-  logIn: (email:string, password:string) => Promise<void>;
+  signUp: (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
+  logIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
 };
 export const useAuthStore = create<AuthStore>((set, get) => ({
-  user: null ,         // user Firebase (uid, email, etc.)
-  profile: null,      // user Firestore (firstName, lastName…)
+  user: null, // user Firebase (uid, email, etc.)
+  profile: null, // user Firestore (firstName, lastName…)
 
   /** Écouteur automatique au démarrage */
   initAuth: () => {
-    onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log("Changement d'état d'authentification détecté", firebaseUser);
       if (!firebaseUser) {
         set({ user: null, profile: null });
-        router.replace("/signin"); 
+        router.replace("/signin");
         return;
       }
       set({ user: firebaseUser });
@@ -39,12 +45,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         set({ profile: snapshot.data() });
       }
 
-      router.replace("/"); 
+      router.replace("/");
     });
+    return unsubscribe;
   },
 
   /** Inscription */
-  signUp: async (firstName:string, lastName:string, email:string, password:string) => {
+  signUp: async (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string
+  ) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const profile = {
       uid: cred.user.uid,
@@ -55,11 +67,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     };
     await setDoc(doc(db, "users", cred.user.uid), profile);
     await signInWithEmailAndPassword(auth, email, password);
-    
   },
 
   /** Connexion */
-  logIn: async (email:string, password:string) => {
+  logIn: async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
   },
 

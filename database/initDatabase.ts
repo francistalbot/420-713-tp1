@@ -4,8 +4,8 @@ const DATABASE_NAME = "tp1.db";
 let dbPromise = SQLite.openDatabaseAsync(DATABASE_NAME);
 
 export const deleteDatabase = async () => {
+  console.log("Suppression de la base de données existante...");
   const db = await dbPromise;
-  await db.execAsync("DROP TABLE IF EXISTS users;");
   await db.execAsync("DROP TABLE IF EXISTS trips;");
   await db.execAsync("DROP TABLE IF EXISTS waypoints;");
 };
