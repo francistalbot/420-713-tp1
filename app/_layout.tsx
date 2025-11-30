@@ -7,7 +7,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
-import { deleteDatabase, initDatabase } from "../database/initDatabase";
+import { initDatabase } from "../database/initDatabase";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAuthStore } from "@/utils/authStore";
@@ -23,7 +23,6 @@ export default function RootLayout() {
   useEffect(() => {
     const setupDatabase = async () => {
       try {
-        await deleteDatabase();
         await initDatabase();
         console.log("Base de données initialisée avec succès");
       } catch (error) {
@@ -44,8 +43,7 @@ export default function RootLayout() {
           <Stack.Screen name="(main)" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={!user}>
-          <Stack.Screen name="signin" options={{ headerShown: false }} />
-          <Stack.Screen name="createAccount" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
       <StatusBar style="auto" />

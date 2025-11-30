@@ -1,3 +1,4 @@
+import { initialUserForm, UserForm, UserFormErrors, userFormSchema } from "@/schemas/userSchema";
 import { useAuthStore } from "@/utils/authStore";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -10,26 +11,11 @@ import {
   View,
 } from "react-native";
 
-type FormData = {
-  firstName: string;
-  lastName: string;
-  password: string;
-  confirmPassword: string;
-  email: string;
-  message?: string;
-};
-
-const initialFormData: FormData = {
-  firstName: "",
-  lastName: "",
-  password: "",
-  confirmPassword: "",
-  email: "",
-};
-
 export default function createAccount() {
   const { signUp } = useAuthStore();
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [formData, setFormData] = useState<UserForm>(initialUserForm);
+  const [msg, setMsg] = useState(""); // Message global (création de compte)
+  const [fieldErrors, setFieldErrors] = useState<UserFormErrors>({});
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -38,40 +24,67 @@ export default function createAccount() {
     }));
   };
 
-  const createAccount = () => {
+  const handleCreateAccount = () => {
+    setMsg("");
+    setFieldErrors({});
+    // Validation Zod
+    const result = userFormSchema.safeParse(formData);
+    if (!result.success) {
+      // Regroupe les erreurs par champ
+      const errors: UserFormErrors = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof UserFormErrors;
+        if (!errors[field]) {
+          errors[field] = issue.message;
+        }
+      });
+      setFieldErrors(errors);
+      return;
+    }
     if (formData.password !== formData.confirmPassword) {
-      handleInputChange("message", "Les mots de passe ne correspondent pas.");
+      setMsg("Les mots de passe ne correspondent pas.");
       return;
     }
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      handleInputChange("message", "Veuillez remplir tous les champs.");
+      setMsg( "Veuillez remplir tous les champs.");
       return;
     }
 
     signUp(formData.firstName, formData.lastName, formData.email, formData.password)
-      .catch((error: any) => { 
-        handleInputChange("message", "Erreur lors de la création du compte.");
+      .catch((error: any) => {
+        setMsg("Erreur lors de la création du compte.");
       });
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Création de compte</Text>
-      {formData.message && (
-        <Text style={styles.message}>{formData.message}</Text>
+      {msg !== "" && (
+        <Text style={styles.message}>{msg}</Text>
       )}
+      <View style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         placeholder="Prénom"
         value={formData.firstName}
         onChangeText={(text) => handleInputChange("firstName", text)}
       />
+      {fieldErrors.firstName && (
+        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.firstName}</Text>
+      )}
+      </View>
+      <View style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         placeholder="Nom de famille"
         value={formData.lastName}
         onChangeText={(text) => handleInputChange("lastName", text)}
       />
+      {fieldErrors.lastName && (
+        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.lastName}</Text>
+      )}
+      </View>
+      <View style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         placeholder="Adresse e-mail"
@@ -80,13 +93,23 @@ export default function createAccount() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
+      {fieldErrors.email && (
+        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.email}</Text>
+      )}
+      </View>
+      <View style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         placeholder="Mot de passe"
         secureTextEntry={true}
         value={formData.password}
         onChangeText={(text) => handleInputChange("password", text)}
-      />
+      />      
+      {fieldErrors.password && (
+        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.password}</Text>
+      )}
+      </View>
+      <View style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         placeholder="Confirmer le mot de passe"
@@ -94,8 +117,12 @@ export default function createAccount() {
         value={formData.confirmPassword}
         onChangeText={(text) => handleInputChange("confirmPassword", text)}
       />
+      {fieldErrors.confirmPassword && (
+        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.confirmPassword}</Text>
+      )}
+      </View>
       <View style={styles.buttonContainer}>
-        <Button title="Créer un compte" onPress={() => createAccount()} />
+        <Button title="Créer un compte" onPress={() => handleCreateAccount()} />
       </View>
       <View style={styles.buttonContainer}>
         <Button
@@ -123,11 +150,13 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     textAlign: "center",
   },
+  inputContainer: {
+    marginBottom: 15,
+  },
   input: {
     backgroundColor: "white",
     padding: 15,
     borderRadius: 8,
-    marginBottom: 15,
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ddd",

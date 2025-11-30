@@ -1,27 +1,44 @@
+import { initialUserSignin, UserSignin, UserSigninErrors, userSigninSchema } from "@/schemas/userSchema";
 import { useAuthStore } from "@/utils/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 
+
 export default function Signin() {
   const { logIn } = useAuthStore();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
+  const [formData, setFormData] = useState<UserSignin>(initialUserSignin);
+  const [msg, setMsg] = useState(""); // Message global (connexion)
+  const [fieldErrors, setFieldErrors] = useState<UserSigninErrors>({});
 
   const handleLogin = async () => {
+    setMsg("");
+    setFieldErrors({});
+    // Validation Zod
+    const result = userSigninSchema.safeParse(formData);
+    if (!result.success) {
+      // Regroupe les erreurs par champ
+      const errors: UserSigninErrors = {};
+      result.error.issues.forEach((issue) => {
+        const field = issue.path[0] as keyof UserSigninErrors;
+        if (!errors[field]) {
+          errors[field] = issue.message;
+        }
+      });
+      setFieldErrors(errors);
+      return;
+    }
     try {
-      await logIn(email, password);
+      if(formData && formData.email && formData.password)
+      await logIn(formData.email, formData.password);
     } catch (error: any) {
       console.log(error);
-
       if (error.code === "auth/invalid-credential") {
         setMsg("Email ou mot de passe incorrect.");
         return;
       }
-
       setMsg("Erreur de connexion.");
     }
   };
@@ -38,24 +55,39 @@ export default function Signin() {
 
       <Text style={styles.title}>Connexion</Text>
 
-      {msg !== "" && <Text style={{ color: "red" }}>{msg}</Text>}
 
+      {/* Message d'erreur global (connexion) */}
+      {msg !== "" && (
+        <Text style={{ color: "red", textAlign: "center", marginBottom: 10 }}>{msg}</Text>
+      )}
+
+<View style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         placeholder="Adresse e-mail"
-        value={email}
-        onChangeText={setEmail}
+        value={formData?.email || ""}
+        onChangeText={(text) => setFormData({ ...formData, email: text })}
         autoCapitalize="none"
       />
+      {/* Erreur email */}
+      {fieldErrors.email && (
+        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.email}</Text>
+      )}
+</View>
 
+<View style={styles.inputContainer}>
       <TextInput
         style={styles.input}
         placeholder="Mot de passe"
-        value={password}
-        onChangeText={setPassword}
+        value={formData.password}
+        onChangeText={(text) => setFormData({ ...formData, password: text })}
         secureTextEntry
       />
-
+      {/* Erreur mot de passe */}
+      {fieldErrors.password && (
+        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.password}</Text>
+      )}
+</View>
       <Button title="Se connecter" onPress={handleLogin} />
 
       <View style={{ marginTop: 10 }}>
@@ -106,11 +138,13 @@ const styles = StyleSheet.create({
     color: "#64748b",
     fontStyle: "italic",
   },
+  inputContainer: {
+    marginBottom: 15,
+  },
   input: {
     backgroundColor: "white",
     padding: 15,
     borderRadius: 8,
-    marginBottom: 15,
     fontSize: 16,
     borderWidth: 1,
     borderColor: "#ddd",
