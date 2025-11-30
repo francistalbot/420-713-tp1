@@ -1,18 +1,10 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
-
+/** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
-
 // Add wasm asset support
 config.resolver.assetExts.push("wasm");
-
-// Fix for Zustand middleware
-config.resolver.unstable_conditionNames = [
-  "browser",
-  "require",
-  "react-native",
-];
 
 // Add alias for react-native-maps on web
 config.resolver.resolveRequest = (context, moduleName, platform) => {
