@@ -7,13 +7,14 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { create } from "zustand";
 
 type AuthStore = {
   user: any; // user Firebase (uid, email, etc.)
-  profile: any; // user Firestore (firstName, lastName…)
+  profile: User | null; // user Firestore (firstName, lastName…)
   setTheme: (theme: boolean) => Promise<void>;
   initAuth: () => void;
   signUp: (
@@ -24,14 +25,21 @@ type AuthStore = {
   ) => Promise<void>;
   logIn: ({ email, password }: UserSignin) => Promise<void>;
   logOut: () => Promise<void>;
+  updateProfile: (profileUpdates: Partial<User>) => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
 };
 export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null, // user Firebase (uid, email, etc.)
   profile: null, // user Firestore (firstName, lastName…)
-  setTheme: async (theme) => {
-      set({ profile: { ...get().profile, darkTheme: theme } });
-      await setDoc(doc(db, "users", get().user.uid), { ...get().profile });
-    
+  setTheme: async (darkTheme) => {
+    if (!get().profile) return;
+    set({
+      profile: {
+        ...get().profile,
+        darkTheme: darkTheme,
+      } as User
+    });
+    await setDoc(doc(db, "users", get().user.uid), { ...get().profile });
   },
   /** Écouteur automatique au démarrage */
   initAuth: () => {
@@ -83,5 +91,25 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   /** Déconnexion */
   logOut: async () => {
     await signOut(auth);
+  },
+
+  /** Met à jour le profil */
+  updateProfile: async (profileUpdates: Partial<User>) => {
+    if (!get().profile) return;
+    const updatedProfile = {
+      ...get().profile,
+      ...profileUpdates,
+    } as User;
+    set({ profile: updatedProfile });
+    console.log("Mise à jour du profil dans Firestore :", updatedProfile);
+    await setDoc(doc(db, "users", get().user.uid), updatedProfile);
+  },
+
+  /** Change le mot de passe */
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    if (!get().user) return;
+      const user = get().user;
+      await signInWithEmailAndPassword(auth, user.email, oldPassword);
+      await updatePassword(user, newPassword);
   },
 }));

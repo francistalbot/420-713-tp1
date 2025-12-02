@@ -1,3 +1,4 @@
+import { User } from "@/schemas/userSchema";
 import { useAuthStore } from "@/utils/authStore";
 import { Picker } from '@react-native-picker/picker';
 import { useState } from "react";
@@ -10,30 +11,37 @@ import {
 } from "react-native";
 
 export default function userSetting() {
-  const { logOut, profile, setTheme } = useAuthStore();
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const { logOut, profile, changePassword, updateProfile, setTheme } = useAuthStore();
+  const [userInfo, setUserInfo] = useState<{user:Partial<User>, message:string | null}>({user: {firstName: profile?.firstName, lastName: profile?.lastName, email: profile?.email}, message: null});
 
   const handleProfileInputChange = (field: string, value: string) => {
     setUserInfo((prev: any) => ({
       ...prev,
-      [field]: value,
+      user: {
+        ...prev.user,
+        [field]: value,
+      },
     }));
   };
 
   const handleProfileChange = async () => {
-    if (!userInfo?.first_name || !userInfo?.last_name || !userInfo?.email) return;
-    try {
-      //await modifyUserInfo(userInfo.first_name,userInfo.last_name,userInfo.email);
-      setUserInfo((prev: any) => ({
-        ...prev,
-        message: "Informations mises à jour avec succès.",
-      }));
-    } catch (error) {
-      setUserInfo((prev: any) => ({
-        ...prev,
-        message: "Une erreur est survenue lors de la mise à jour des informations.",
-      }));
-    }
+    if (!userInfo?.user.firstName || !userInfo?.user.lastName || !userInfo?.user.email) return;
+      try {
+        await updateProfile({
+          firstName: userInfo.user.firstName,
+          lastName: userInfo.user.lastName,
+          email: userInfo.user.email,
+        });
+        setUserInfo((prev) => ({
+          ...prev,
+          message: "Profil mis à jour avec succès",
+        }));
+      } catch (error) {
+        setUserInfo((prev) => ({
+          ...prev,
+          message: "Erreur lors de la mise à jour du profil",
+        }));
+      }
   };
 
   const [passwordForm, setPasswordForm] = useState({
@@ -42,8 +50,6 @@ export default function userSetting() {
     newPassword: "",
     confirmNewPassword: "",
   });
-
-
 
   const handlePasswordInputChange = (field: string, value: string) => {
     setPasswordForm((prev) => ({
@@ -61,7 +67,7 @@ export default function userSetting() {
       return;
     }
     try {
-     // await changePassword(passwordForm.oldPassword, passwordForm.newPassword);
+      await changePassword(passwordForm.oldPassword, passwordForm.newPassword);
       setPasswordForm({
         message: "Mot de passe changé avec succès.",
         oldPassword: "",
@@ -95,28 +101,28 @@ export default function userSetting() {
       </View>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Informations Utilisateur</Text>
-        {userInfo?.message && (
+        {userInfo.message && (
           <Text style={styles.message}>{userInfo.message}</Text>
         )}
           <TextInput
             style={[styles.input]}
-            value={userInfo?.first_name}
-            onChangeText={(value) => handleProfileInputChange('first_name', value)}
+            value={userInfo?.user.firstName}
+            onChangeText={(value) => handleProfileInputChange('firstName', value)}
             placeholder="Votre prénom"
             autoCapitalize="words"
           />
 
           <TextInput
             style={[styles.input]}
-            value={userInfo?.last_name}
-            onChangeText={(value) => handleProfileInputChange('last_name', value)}
+            value={userInfo?.user.lastName}
+            onChangeText={(value) => handleProfileInputChange('lastName', value)}
             placeholder="Votre nom"
             autoCapitalize="words"
           />
     
           <TextInput
             style={[styles.input, styles.inputDisabled]}
-            value={userInfo?.email}
+            value={userInfo?.user.email}
             onChangeText={(value) => handleProfileInputChange('email', value)}
             placeholder="votre@email.com"
             keyboardType="email-address"
@@ -125,7 +131,7 @@ export default function userSetting() {
             autoCorrect={false}
           />
         <View style={styles.buttonContainer}>
-          <Button title="Changer le mot de passe" onPress={handleProfileChange} />
+          <Button title="Changer les informations d'utilisateur" onPress={handleProfileChange} />
         </View>
       </View>
       <View style={styles.section}>
