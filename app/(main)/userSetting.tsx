@@ -1,19 +1,17 @@
 import { useAuthStore } from "@/utils/authStore";
+import { Picker } from '@react-native-picker/picker';
 import { useState } from "react";
 import {
-  Button,
-  ScrollView,
+  Button, ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
+  View
 } from "react-native";
 
-export default function userSetting() {
-  const { logOut } = useAuthStore();
-
+function UserSetting() {
+  const { logOut, theme, setTheme } = useAuthStore();
   const [userInfo, setUserInfo] = useState<any>(null);
-
 
   const handleProfileInputChange = (field: string, value: string) => {
     setUserInfo((prev: any) => ({
@@ -21,8 +19,9 @@ export default function userSetting() {
       [field]: value,
     }));
   };
+
   const handleProfileChange = async () => {
-    if (!userInfo.first_name || !userInfo.last_name || !userInfo.email) return;
+    if (!userInfo?.first_name || !userInfo?.last_name || !userInfo?.email) return;
     try {
       //await modifyUserInfo(userInfo.first_name,userInfo.last_name,userInfo.email);
       setUserInfo((prev: any) => ({
@@ -36,13 +35,15 @@ export default function userSetting() {
       }));
     }
   };
-  
+
   const [passwordForm, setPasswordForm] = useState({
     message: null as string | null,
     oldPassword: "",
     newPassword: "",
     confirmNewPassword: "",
   });
+
+
 
   const handlePasswordInputChange = (field: string, value: string) => {
     setPasswordForm((prev) => ({
@@ -78,6 +79,20 @@ export default function userSetting() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Paramètres Utilisateur</Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Thème de l'application</Text>
+        <View style={{ marginBottom: 15 }}>
+          <Picker
+            selectedValue={theme === null ? '' : theme ? 'dark' : 'light'}
+            onValueChange={value => setTheme(value === 'dark')}
+            style={{ backgroundColor: '#f9f9f9', borderRadius: 8 }}
+          >
+            <Picker.Item label="Système" value="" />
+            <Picker.Item label="Clair" value="light" />
+            <Picker.Item label="Sombre" value="dark" />
+          </Picker>
+        </View>
+      </View>
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Informations Utilisateur</Text>
         {userInfo?.message && (

@@ -13,6 +13,8 @@ import { create } from "zustand";
 type AuthStore = {
   user: any; // user Firebase (uid, email, etc.)
   profile: any; // user Firestore (firstName, lastName…)
+  theme: boolean| null;
+  setTheme: (theme: boolean) => void;
   initAuth: () => void;
   signUp: (
     firstName: string,
@@ -26,7 +28,8 @@ type AuthStore = {
 export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null, // user Firebase (uid, email, etc.)
   profile: null, // user Firestore (firstName, lastName…)
-
+  theme: null,
+  setTheme: (theme) => set({ theme }),
   /** Écouteur automatique au démarrage */
   initAuth: () => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
