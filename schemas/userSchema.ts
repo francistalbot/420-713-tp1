@@ -9,6 +9,7 @@ const userSchema = z.object({
         .min(2, { message: "Le nom doit contenir au moins 2 caractères." })
         .max(100, { message: "Le nom ne doit pas dépasser 100 caractères." }),
     email: z.email({ message: "L'adresse courriel n'est pas valide." }),
+    darkTheme: z.boolean().optional(),
 });
 
 const userFormSchema = userSchema.extend({
@@ -21,7 +22,7 @@ const userFormSchema = userSchema.extend({
         .regex(/[^A-Za-z0-9]/, { message: "Le mot de passe doit contenir au moins un caractère spécial." }),
     confirmPassword: z.string()
         .min(1, { message: "La confirmation du mot de passe est requise." }),
-}).omit({uid: true});
+}).omit({uid: true, darkTheme: true});
 
 const userSigninSchema = userSchema.pick({email: true}).extend({password: z.string().min(1, { message: "Le mot de passe est requis." })});
 

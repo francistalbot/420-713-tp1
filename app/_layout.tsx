@@ -18,7 +18,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { user, theme, initAuth } = useAuthStore();
+  const { user, profile, initAuth } = useAuthStore();
 
   useEffect(() => {
     const setupDatabase = async () => {
@@ -38,12 +38,11 @@ export default function RootLayout() {
   }, []);
 
   const appliedTheme = () =>{
-    if (theme === null) {
-      return colorScheme === "dark" ? DarkTheme : DefaultTheme;
+    if (profile?.darkTheme !== undefined) {
+    return profile.darkTheme ? DarkTheme : DefaultTheme;
     }
-    return theme ? DarkTheme : DefaultTheme;
+      return colorScheme === "dark" ? DarkTheme : DefaultTheme;
   }
-  
   return (
     <ThemeProvider value={appliedTheme()}>
       <Stack>

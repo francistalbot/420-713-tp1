@@ -1,11 +1,12 @@
 // utils/authStore.ts
 import { auth, db } from "@/lib/firebaseConfig";
+import { User, UserSignin } from "@/schemas/userSchema";
 import { router } from "expo-router";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { create } from "zustand";
@@ -13,8 +14,7 @@ import { create } from "zustand";
 type AuthStore = {
   user: any; // user Firebase (uid, email, etc.)
   profile: any; // user Firestore (firstName, lastName…)
-  theme: boolean| null;
-  setTheme: (theme: boolean) => void;
+  setTheme: (theme: boolean) => Promise<void>;
   initAuth: () => void;
   signUp: (
     firstName: string,
@@ -22,14 +22,17 @@ type AuthStore = {
     email: string,
     password: string
   ) => Promise<void>;
-  logIn: (email: string, password: string) => Promise<void>;
+  logIn: ({ email, password }: UserSignin) => Promise<void>;
   logOut: () => Promise<void>;
 };
 export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null, // user Firebase (uid, email, etc.)
   profile: null, // user Firestore (firstName, lastName…)
-  theme: null,
-  setTheme: (theme) => set({ theme }),
+  setTheme: async (theme) => {
+      set({ profile: { ...get().profile, darkTheme: theme } });
+      await setDoc(doc(db, "users", get().user.uid), { ...get().profile });
+    
+  },
   /** Écouteur automatique au démarrage */
   initAuth: () => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -45,7 +48,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const snapshot = await getDoc(userRef);
 
       if (snapshot.exists()) {
-        set({ profile: snapshot.data() });
+        set({ profile: snapshot.data() as User });
       }
 
       router.replace("/");
@@ -73,7 +76,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   /** Connexion */
-  logIn: async (email: string, password: string) => {
+  logIn: async ({ email, password }: UserSignin) => {
     await signInWithEmailAndPassword(auth, email, password);
   },
 

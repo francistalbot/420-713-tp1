@@ -32,7 +32,7 @@ export default function Signin() {
     }
     try {
       if(formData && formData.email && formData.password)
-      await logIn(formData.email, formData.password);
+      await logIn({ email: formData.email, password: formData.password });
     } catch (error: any) {
       console.log(error);
       if (error.code === "auth/invalid-credential") {

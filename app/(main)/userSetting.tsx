@@ -9,8 +9,8 @@ import {
   View
 } from "react-native";
 
-function UserSetting() {
-  const { logOut, theme, setTheme } = useAuthStore();
+export default function userSetting() {
+  const { logOut, profile, setTheme } = useAuthStore();
   const [userInfo, setUserInfo] = useState<any>(null);
 
   const handleProfileInputChange = (field: string, value: string) => {
@@ -83,7 +83,7 @@ function UserSetting() {
         <Text style={styles.sectionTitle}>Thème de l'application</Text>
         <View style={{ marginBottom: 15 }}>
           <Picker
-            selectedValue={theme === null ? '' : theme ? 'dark' : 'light'}
+            selectedValue={profile?.darkTheme !== undefined ?  profile?.darkTheme ? 'dark' : 'light' : '' }
             onValueChange={value => setTheme(value === 'dark')}
             style={{ backgroundColor: '#f9f9f9', borderRadius: 8 }}
           >
