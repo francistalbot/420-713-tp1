@@ -4,12 +4,13 @@ import dbPromise from "../database/initDatabase";
 export async function createTrip(
   name: string,
   description: string,
-  userId: number
+  userId: number,
+  type: string
 ) {
   const db = await dbPromise;
   const res = await db.runAsync(
-    "INSERT INTO trips (name, description, user_id) VALUES (?, ?, ?)",
-    [name, description, userId]
+    "INSERT INTO trips (name, description, user_id, type) VALUES (?, ?, ?, ?)",
+    [name, description, userId, type]
   );
   return res.lastInsertRowId;
 }

@@ -17,7 +17,7 @@ export const initDatabase = async () => {
     CREATE TABLE IF NOT EXISTS trips (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      type TEXT NOT NULL,
+      type TEXT CHECK(type IN ('personnel', 'affaire')) NOT NULL,
       positions_count INTEGER DEFAULT 0,
       description TEXT,
       user_id INTEGER NOT NULL,

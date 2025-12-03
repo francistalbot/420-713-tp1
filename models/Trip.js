@@ -1,35 +1,32 @@
-import dbPromise from '../database/database';
+import dbPromise from "../database/initDatabase";
 
-export const createTrajet = async (nom, pointDepart, pointArrivee, userId) => {
+export const createTrip = async (nom, pointDepart, pointArrivee, userId) => {
   const db = await dbPromise;
   const result = await db.runAsync(
-        'INSERT INTO trajets (nom, point_depart, point_arrivee, user_id) VALUES (?, ?, ?, ?)',
-        [nom, pointDepart, pointArrivee, userId]
-      );
-      console.log(result.lastInsertRowId, result.changes);
+    "INSERT INTO trips (nom, point_depart, point_arrivee, user_id) VALUES (?, ?, ?, ?)",
+    [nom, pointDepart, pointArrivee, userId]
+  );
+  console.log(result.lastInsertRowId, result.changes);
   return result.insertId;
 };
 
-export const getAllTrajets = async () => {
+export const getAllTrips = async () => {
   const db = await dbPromise;
-  const result = await db.allAsync('SELECT * FROM trajets');
+  const result = await db.getAllAsync("SELECT * FROM trips");
   return result;
 };
 
-export const updateTrajet = async (id, nom, pointDepart, pointArrivee) => {
+export const updateTrip = async (id, nom, pointDepart, pointArrivee) => {
   const db = await dbPromise;
   const result = await db.runAsync(
-    'UPDATE trajets SET nom = ?, point_depart = ?, point_arrivee = ? WHERE id = ?',
+    "UPDATE trips SET nom = ?, point_depart = ?, point_arrivee = ? WHERE id = ?",
     [nom, pointDepart, pointArrivee, id]
   );
   return result.changes;
 };
 
-export const deleteTrajet = async (id) => {
+export const deleteTrip = async (id) => {
   const db = await dbPromise;
-  const result = await db.runAsync(
-    'DELETE FROM trajets WHERE id = ?',
-    [id]
-  );
+  const result = await db.runAsync("DELETE FROM trips WHERE id = ?", [id]);
   return result.changes;
 };

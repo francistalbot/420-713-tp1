@@ -32,7 +32,7 @@ export default function TripListScreen() {
   const loadTrips = async () => {
     try {
       if (!user) return;
-      const results = await listTrips(user);
+      const results = await listTrips(user.uid);
       setTrips(results as any[]);
     } catch (err) {
       console.error(err);

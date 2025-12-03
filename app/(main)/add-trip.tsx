@@ -2,7 +2,16 @@ import { useAuthStore } from "@/utils/authStore";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Button, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Button,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { createTrip } from "../../lib/trips";
 import { addWaypoint } from "../../lib/waypoints";
 
@@ -19,10 +28,11 @@ if (Platform.OS !== "web") {
 }
 
 export default function AddTripScreen() {
-  const { userId } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [type, setType] = useState<"personnel" | "affaire">("personnel");
   const [isTracking, setIsTracking] = useState(false);
   const [positions, setPositions] = useState<any[]>([]);
   const [currentPosition, setCurrentPosition] = useState<any>(null);
@@ -52,7 +62,10 @@ export default function AddTripScreen() {
           setCurrentPosition(initialPos);
         }
       } catch (error) {
-        console.log("Erreur lors de l'obtention de la position initiale:", error);
+        console.log(
+          "Erreur lors de l'obtention de la position initiale:",
+          error
+        );
       }
     };
 
@@ -86,10 +99,10 @@ export default function AddTripScreen() {
     setTrackingCompleted(false);
     setIsTracking(true);
     setElapsed(0);
-    
+
     // Capturer immédiatement la première position
     await capturePosition();
-    
+
     // Démarrer le compteur
     timerRef.current = setInterval(() => {
       setElapsed((prev) => prev + 1);
@@ -140,9 +153,10 @@ export default function AddTripScreen() {
     }
 
     try {
-      if (!userId) return;
-      
-      const tripId = await createTrip(name, description, userId);
+      if (!user.uid) return;
+
+      console.log("Enregistrement du trajet...", name, description, user.uid);
+      const tripId = await createTrip(name, description, user.uid, type);
 
       for (const p of positions) {
         await addWaypoint(tripId, p.latitude, p.longitude);
@@ -177,8 +191,8 @@ export default function AddTripScreen() {
     }
 
     if (positions.length > 1) {
-      const lats = positions.map(p => p.latitude);
-      const lngs = positions.map(p => p.longitude);
+      const lats = positions.map((p) => p.latitude);
+      const lngs = positions.map((p) => p.longitude);
       const minLat = Math.min(...lats);
       const maxLat = Math.max(...lats);
       const minLng = Math.min(...lngs);
@@ -202,26 +216,47 @@ export default function AddTripScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <Text style={styles.title}>Ajouter un Trajet</Text>
 
-{!trackingCompleted && !isTracking && (
-  <>
-      <TextInput
-        style={styles.input}
-        placeholder="Nom du trajet"
-        value={name}
-        onChangeText={setName}
-      />
+      {!trackingCompleted && !isTracking && (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Nom du trajet"
+            value={name}
+            onChangeText={setName}
+          />
 
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Description"
-        multiline
-        value={description}
-        onChangeText={setDescription}
-      />
-    </>)}
+          <TextInput
+            style={[styles.input, { height: 80 }]}
+            placeholder="Description"
+            multiline
+            value={description}
+            onChangeText={setDescription}
+          />
+
+          {/* Picker pour le type de trajet */}
+          <View style={styles.pickerContainer}>
+            <View style={styles.pickerRow}>
+              <Button
+                title="Personnel"
+                color={type === "personnel" ? "#2b6cb0" : "#ccc"}
+                onPress={() => setType("personnel")}
+              />
+              <View style={{ width: 10 }} />
+              <Button
+                title="Affaire"
+                color={type === "affaire" ? "#2b6cb0" : "#ccc"}
+                onPress={() => setType("affaire")}
+              />
+            </View>
+          </View>
+        </>
+      )}
 
       {/* Carte en temps réel */}
       {Platform.OS === "web" ? (
@@ -254,14 +289,13 @@ export default function AddTripScreen() {
             {/* Ligne du trajet */}
             {positions.length > 1 && (
               <Polyline
-                coordinates={positions.map(p => ({
+                coordinates={positions.map((p) => ({
                   latitude: p.latitude,
                   longitude: p.longitude,
                 }))}
                 strokeColor="#2b6cb0"
                 strokeWidth={3}
               />
-              
             )}
             {/* Point d'arrivée */}
             {trackingCompleted && (
@@ -271,7 +305,9 @@ export default function AddTripScreen() {
                   longitude: positions[positions.length - 1].longitude,
                 }}
                 title="Arrivée"
-                description={`Terminé à: ${positions[positions.length - 1].timestamp}`}
+                description={`Terminé à: ${
+                  positions[positions.length - 1].timestamp
+                }`}
                 pinColor="red"
               />
             )}
@@ -280,9 +316,9 @@ export default function AddTripScreen() {
       )}
 
       {/* Informations en temps réel */}
-        {isTracking && (
-            <Text style={styles.counter}>Temps écoulé : {elapsed}s</Text>
-        )}
+      {isTracking && (
+        <Text style={styles.counter}>Temps écoulé : {elapsed}s</Text>
+      )}
 
       {/* Contrôles */}
       <View style={styles.controlsContainer}>
@@ -298,17 +334,22 @@ export default function AddTripScreen() {
           <>
             <View style={styles.completedInfo}>
               <Text style={styles.completedText}>Tracking terminé !</Text>
-              <Text style={styles.info}>{positions.length} points enregistrés</Text>
+              <Text style={styles.info}>
+                {positions.length} points enregistrés
+              </Text>
             </View>
 
             <Button title="Envoyer le trajet" onPress={sendTrip} />
 
             <View style={styles.buttonSpacing}>
-              <Button title="Nouveau Trajet" onPress={() => {
-                setTrackingCompleted(false);
-                setPositions([]);
-                setElapsed(0);
-              }} />
+              <Button
+                title="Nouveau Trajet"
+                onPress={() => {
+                  setTrackingCompleted(false);
+                  setPositions([]);
+                  setElapsed(0);
+                }}
+              />
             </View>
 
             <View style={styles.buttonSpacing}>
@@ -322,6 +363,18 @@ export default function AddTripScreen() {
 }
 
 const styles = StyleSheet.create({
+  pickerContainer: {
+    marginBottom: 15,
+  },
+  pickerLabel: {
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#2b6cb0",
+  },
+  pickerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -347,9 +400,9 @@ const styles = StyleSheet.create({
   mapContainer: {
     marginVertical: 15,
     borderRadius: 15,
-    overflow: 'hidden',
+    overflow: "hidden",
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
