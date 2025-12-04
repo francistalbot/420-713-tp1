@@ -1,3 +1,4 @@
+import { useTheme } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -44,6 +45,7 @@ interface Trip {
 export default function TripDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { colors } = useTheme();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -80,16 +82,16 @@ export default function TripDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#2b6cb0" />
+      <View style={[styles.loader, { backgroundColor: colors.background }] }>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   if (!trip) {
     return (
-      <View style={styles.container}>
-        <Text>Trajet introuvable.</Text>
+      <View style={[styles.container, { backgroundColor: colors.background }] }>
+        <Text style={{ color: colors.text }}>Trajet introuvable.</Text>
       </View>
     );
   }
@@ -114,13 +116,13 @@ export default function TripDetailScreen() {
       };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Détails du trajet</Text>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }] }>
+      <Text style={[styles.title, { color: colors.text }]}>Détails du trajet</Text>
 
       {/* Fallback Web */}
       {Platform.OS === "web" ? (
-        <View style={styles.webFallback}>
-          <Text style={{ fontSize: 16, textAlign: "center", color: "#444" }}>
+        <View style={[styles.webFallback, { backgroundColor: colors.card, borderColor: colors.border }] }>
+          <Text style={{ fontSize: 16, textAlign: "center", color: colors.text }}>
             🖥️ La carte n’est pas disponible sur Web.
             Veuillez tester sur Android ou iOS.
           </Text>
@@ -135,7 +137,7 @@ export default function TripDetailScreen() {
                   longitude: p.longitude,
                 }))}
                 strokeWidth={4}
-                strokeColor="#2b6cb0"
+                strokeColor={colors.primary}
               />
               {/* Départ */}
               <Marker
@@ -158,21 +160,21 @@ export default function TripDetailScreen() {
       )}
 
       {/* Formulaire modification */}
-      <View style={styles.form}>
-        <Text style={styles.label}>Nom :</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} />
+      <View style={[styles.form, { backgroundColor: colors.card }] }>
+        <Text style={[styles.label, { color: colors.text }]}>Nom :</Text>
+        <TextInput style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]} value={name} onChangeText={setName} />
 
-        <Text style={styles.label}>Description :</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Description :</Text>
         <TextInput
-          style={[styles.input, { height: 80 }]}
+          style={[styles.input, { height: 80, backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
           multiline
           value={description}
           onChangeText={setDescription}
         />
 
-        <Button title="Enregistrer les modifications" onPress={handleUpdate} />
+        <Button title="Enregistrer les modifications" onPress={handleUpdate} color={colors.primary} />
         <View style={{ marginTop: 10 }}>
-          <Button title="Retour" onPress={() => router.push("/(main)")} />
+          <Button title="Retour" onPress={() => router.push("/(main)")} color={colors.primary} />
         </View>
       </View>
     </ScrollView>
@@ -181,7 +183,6 @@ export default function TripDetailScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
     padding: 15,
     flexGrow: 1,
   },
@@ -199,16 +200,13 @@ const styles = StyleSheet.create({
   webFallback: {
     height: 300,
     borderRadius: 10,
-    backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#ccc",
   },
   form: {
-    backgroundColor: "#f9f9f9",
     padding: 15,
     borderRadius: 10,
   },
@@ -218,7 +216,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     padding: 10,
     borderRadius: 8,
     marginTop: 5,
