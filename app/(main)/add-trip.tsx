@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/utils/authStore";
+import { useTheme } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -31,6 +32,7 @@ export default function AddTripScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
   const [name, setName] = useState("");
+  const { colors } = useTheme();
   const [description, setDescription] = useState("");
   const [type, setType] = useState<"personnel" | "affaire">("personnel");
   const [isTracking, setIsTracking] = useState(false);
@@ -217,24 +219,26 @@ export default function AddTripScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}
     >
-      <Text style={styles.title}>Ajouter un Trajet</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Ajouter un Trajet</Text>
 
       {!trackingCompleted && !isTracking && (
         <>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
             placeholder="Nom du trajet"
+            placeholderTextColor={colors.border}
             value={name}
             onChangeText={setName}
           />
 
           <TextInput
-            style={[styles.input, { height: 80 }]}
+            style={[styles.input, { height: 80, backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
             placeholder="Description"
             multiline
+            placeholderTextColor={colors.border}
             value={description}
             onChangeText={setDescription}
           />
@@ -244,13 +248,13 @@ export default function AddTripScreen() {
             <View style={styles.pickerRow}>
               <Button
                 title="Personnel"
-                color={type === "personnel" ? "#2b6cb0" : "#ccc"}
+                color={type === "personnel" ? colors.primary : colors.border}
                 onPress={() => setType("personnel")}
               />
               <View style={{ width: 10 }} />
               <Button
                 title="Affaire"
-                color={type === "affaire" ? "#2b6cb0" : "#ccc"}
+                color={type === "affaire" ? colors.primary : colors.border}
                 onPress={() => setType("affaire")}
               />
             </View>
@@ -260,8 +264,8 @@ export default function AddTripScreen() {
 
       {/* Carte en temps réel */}
       {Platform.OS === "web" ? (
-        <View style={styles.webFallback}>
-          <Text style={{ fontSize: 16, textAlign: "center", color: "#444" }}>
+        <View style={[styles.webFallback, { backgroundColor: colors.card, borderColor: colors.border }] }>
+          <Text style={{ fontSize: 16, textAlign: "center", color: colors.text }}>
             🖥️ La carte n'est pas disponible sur Web.
           </Text>
         </View>
@@ -317,7 +321,7 @@ export default function AddTripScreen() {
 
       {/* Informations en temps réel */}
       {isTracking && (
-        <Text style={styles.counter}>Temps écoulé : {elapsed}s</Text>
+        <Text style={[styles.counter, { color: colors.primary }]}>Temps écoulé : {elapsed}s</Text>
       )}
 
       {/* Contrôles */}
@@ -332,14 +336,14 @@ export default function AddTripScreen() {
 
         {trackingCompleted && (
           <>
-            <View style={styles.completedInfo}>
-              <Text style={styles.completedText}>Tracking terminé !</Text>
-              <Text style={styles.info}>
+            <View style={[styles.completedInfo, { backgroundColor: colors.notification, borderColor: colors.border }] }>
+              <Text style={[styles.completedText, { color: colors.card }]}>Tracking terminé !</Text>
+              <Text style={[styles.info, { color: colors.card }]}>
                 {positions.length} points enregistrés
               </Text>
             </View>
 
-            <Button title="Envoyer le trajet" onPress={sendTrip} />
+            <Button title="Envoyer le trajet" onPress={sendTrip} color={colors.primary} />
 
             <View style={styles.buttonSpacing}>
               <Button
@@ -349,11 +353,12 @@ export default function AddTripScreen() {
                   setPositions([]);
                   setElapsed(0);
                 }}
+                color={colors.primary}
               />
             </View>
 
             <View style={styles.buttonSpacing}>
-              <Button title="Retour" onPress={() => router.push("/(main)")} />
+              <Button title="Retour" onPress={() => router.push("/(main)")} color={colors.primary} />
             </View>
           </>
         )}
@@ -377,7 +382,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   contentContainer: {
     padding: 20,
@@ -387,15 +391,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    color: "#2b6cb0",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 10,
     padding: 10,
     marginBottom: 15,
-    backgroundColor: "#f9f9f9",
   },
   mapContainer: {
     marginVertical: 15,
@@ -413,13 +414,11 @@ const styles = StyleSheet.create({
   webFallback: {
     height: 300,
     borderRadius: 15,
-    backgroundColor: "#eee",
     justifyContent: "center",
     alignItems: "center",
     marginVertical: 15,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#ccc",
   },
   infoContainer: {
     backgroundColor: "#f8f9fa",
@@ -440,7 +439,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     fontWeight: "bold",
-    color: "#2b6cb0",
     marginBottom: 5,
   },
   pointsCount: {
@@ -453,24 +451,20 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   completedInfo: {
-    backgroundColor: "#d4edda",
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
     borderWidth: 1,
-    borderColor: "#c3e6cb",
   },
   completedText: {
     textAlign: "center",
     fontSize: 18,
     fontWeight: "bold",
-    color: "#155724",
     marginBottom: 5,
   },
   info: {
     textAlign: "center",
     fontWeight: "600",
-    color: "#155724",
   },
   buttonSpacing: {
     marginTop: 10,

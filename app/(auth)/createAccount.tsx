@@ -2,6 +2,8 @@ import { initialUserForm, UserForm, UserFormErrors, userFormSchema } from "@/sch
 import { useAuthStore } from "@/utils/authStore";
 import { router } from "expo-router";
 import { useState } from "react";
+
+import { useTheme } from "@react-navigation/native";
 import {
   Button,
   ScrollView,
@@ -11,8 +13,10 @@ import {
   View,
 } from "react-native";
 
-export default function createAccount() {
+
+export default function CreateAccount() {
   const { signUp } = useAuthStore();
+  const { colors } = useTheme();
   const [formData, setFormData] = useState<UserForm>(initialUserForm);
   const [msg, setMsg] = useState(""); // Message global (création de compte)
   const [fieldErrors, setFieldErrors] = useState<UserFormErrors>({});
@@ -57,77 +61,83 @@ export default function createAccount() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Création de compte</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+      <Text style={[styles.title, { color: colors.text }]}>Création de compte</Text>
       {msg !== "" && (
-        <Text style={styles.message}>{msg}</Text>
+        <Text style={[styles.message, { backgroundColor: colors.notification, color: colors.card }]}>{msg}</Text>
       )}
       <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.input}
-        placeholder="Prénom"
-        value={formData.firstName}
-        onChangeText={(text) => handleInputChange("firstName", text)}
-      />
-      {fieldErrors.firstName && (
-        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.firstName}</Text>
-      )}
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+          placeholder="Prénom"
+          placeholderTextColor={colors.border}
+          value={formData.firstName}
+          onChangeText={(text) => handleInputChange("firstName", text)}
+        />
+        {fieldErrors.firstName && (
+          <Text style={{ color: colors.notification, marginBottom: 5 }}>{fieldErrors.firstName}</Text>
+        )}
       </View>
       <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.input}
-        placeholder="Nom de famille"
-        value={formData.lastName}
-        onChangeText={(text) => handleInputChange("lastName", text)}
-      />
-      {fieldErrors.lastName && (
-        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.lastName}</Text>
-      )}
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+          placeholder="Nom de famille"
+          placeholderTextColor={colors.border}
+          value={formData.lastName}
+          onChangeText={(text) => handleInputChange("lastName", text)}
+        />
+        {fieldErrors.lastName && (
+          <Text style={{ color: colors.notification, marginBottom: 5 }}>{fieldErrors.lastName}</Text>
+        )}
       </View>
       <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.input}
-        placeholder="Adresse e-mail"
-        value={formData.email}
-        onChangeText={(text) => handleInputChange("email", text)}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      {fieldErrors.email && (
-        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.email}</Text>
-      )}
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+          placeholder="Adresse e-mail"
+          placeholderTextColor={colors.border}
+          value={formData.email}
+          onChangeText={(text) => handleInputChange("email", text)}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        {fieldErrors.email && (
+          <Text style={{ color: colors.notification, marginBottom: 5 }}>{fieldErrors.email}</Text>
+        )}
       </View>
       <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.input}
-        placeholder="Mot de passe"
-        secureTextEntry={true}
-        value={formData.password}
-        onChangeText={(text) => handleInputChange("password", text)}
-      />      
-      {fieldErrors.password && (
-        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.password}</Text>
-      )}
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+          placeholder="Mot de passe"
+          placeholderTextColor={colors.border}
+          secureTextEntry={true}
+          value={formData.password}
+          onChangeText={(text) => handleInputChange("password", text)}
+        />      
+        {fieldErrors.password && (
+          <Text style={{ color: colors.notification, marginBottom: 5 }}>{fieldErrors.password}</Text>
+        )}
       </View>
       <View style={styles.inputContainer}>
-      <TextInput
-        style={styles.input}
-        placeholder="Confirmer le mot de passe"
-        secureTextEntry={true}
-        value={formData.confirmPassword}
-        onChangeText={(text) => handleInputChange("confirmPassword", text)}
-      />
-      {fieldErrors.confirmPassword && (
-        <Text style={{ color: "red", marginBottom: 5 }}>{fieldErrors.confirmPassword}</Text>
-      )}
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+          placeholder="Confirmer le mot de passe"
+          placeholderTextColor={colors.border}
+          secureTextEntry={true}
+          value={formData.confirmPassword}
+          onChangeText={(text) => handleInputChange("confirmPassword", text)}
+        />
+        {fieldErrors.confirmPassword && (
+          <Text style={{ color: colors.notification, marginBottom: 5 }}>{fieldErrors.confirmPassword}</Text>
+        )}
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Créer un compte" onPress={() => handleCreateAccount()} />
+        <Button title="Créer un compte" onPress={() => handleCreateAccount()} color={colors.primary} />
       </View>
       <View style={styles.buttonContainer}>
         <Button
           title="Retour à la connexion"
           onPress={() => router.push("/signin")}
+          color={colors.primary}
         />
       </View>
     </ScrollView>
@@ -137,7 +147,6 @@ export default function createAccount() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
   },
   content: {
     padding: 20,
@@ -154,19 +163,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   input: {
-    backgroundColor: "white",
     padding: 15,
     borderRadius: 8,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
   message: {
     textAlign: "center",
     marginBottom: 15,
     padding: 10,
     borderRadius: 8,
-    backgroundColor: "#e3f2fd",
   },
   buttonContainer: {
     marginVertical: 8,

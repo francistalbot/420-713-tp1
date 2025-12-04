@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/utils/authStore";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useTheme } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -22,8 +22,9 @@ interface Trip {
   waypoint_count: number;
 }
 
-export default function TripListScreen() {
+export default function tripListScreen() {
   const { user } = useAuthStore();
+  const { colors } = useTheme();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -72,15 +73,15 @@ export default function TripListScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#2b6cb0" />
+      <View style={[styles.loader, { backgroundColor: colors.background }] }>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Liste des trajets</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }] }>
+      <Text style={[styles.title, { color: colors.text }]}>Liste des trajets</Text>
 
       <FlatList
         data={trips}
@@ -90,18 +91,18 @@ export default function TripListScreen() {
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.tripItem}
+            style={[styles.tripItem, { backgroundColor: colors.card, borderColor: colors.border }]}
             onPress={() => router.push(`/(main)/trip/${item.id}`)}
             onLongPress={() => handleDelete(item.id)}
           >
             <View style={{ flex: 1 }}>
-              <Text style={styles.tripName}>{item.name}</Text>
+              <Text style={[styles.tripName, { color: colors.primary }]}>{item.name}</Text>
 
               {item.description ? (
-                <Text style={styles.desc}>{item.description}</Text>
+                <Text style={[styles.desc, { color: colors.text }]}>{item.description}</Text>
               ) : null}
 
-              <Text style={styles.details}>
+              <Text style={[styles.details, { color: colors.border }]}>
                 {item.waypoint_count} points •{" "}
                 {new Date(item.created_at).toLocaleString()}
               </Text>
@@ -111,7 +112,7 @@ export default function TripListScreen() {
       />
 
       {trips.length === 0 && (
-        <Text style={styles.empty}>Aucun trajet trouvé.</Text>
+        <Text style={[styles.empty, { color: colors.border }]}>Aucun trajet trouvé.</Text>
       )}
     </View>
   );
@@ -121,7 +122,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
   },
   title: {
     fontSize: 22,
@@ -130,23 +130,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   tripItem: {
-    backgroundColor: "#f4f4f4",
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
     elevation: 2,
+    borderWidth: 1,
   },
   tripName: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#2b6cb0",
   },
   desc: {
-    color: "#666",
     marginTop: 4,
   },
   details: {
-    color: "#888",
     marginTop: 6,
     fontSize: 12,
   },
@@ -154,7 +151,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     fontSize: 16,
-    color: "#888",
   },
   loader: {
     flex: 1,

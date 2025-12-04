@@ -1,6 +1,7 @@
 import { User } from "@/schemas/userSchema";
 import { useAuthStore } from "@/utils/authStore";
 import { Picker } from '@react-native-picker/picker';
+import { useTheme } from "@react-navigation/native";
 import { useState } from "react";
 import {
   Button, ScrollView,
@@ -9,9 +10,9 @@ import {
   TextInput,
   View
 } from "react-native";
-
-export default function userSetting() {
+export default function userSettings() {
   const { logOut, profile, changePassword, updateProfile, setTheme } = useAuthStore();
+  const { colors } = useTheme();
   const [userInfo, setUserInfo] = useState<{user:Partial<User>, message:string | null}>({user: {firstName: profile?.firstName, lastName: profile?.lastName, email: profile?.email}, message: null});
 
   const handleProfileInputChange = (field: string, value: string) => {
@@ -82,46 +83,47 @@ export default function userSetting() {
     }
   };
 
-  return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Paramètres Utilisateur</Text>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Thème de l'application</Text>
-        <View style={{ marginBottom: 15 }}>
-          <Picker
-            selectedValue={profile?.darkTheme !== undefined ?  profile?.darkTheme ? 'dark' : 'light' : '' }
-            onValueChange={value => setTheme(value === 'dark')}
-            style={{ backgroundColor: '#f9f9f9', borderRadius: 8 }}
-          >
-            <Picker.Item label="Système" value="" />
-            <Picker.Item label="Clair" value="light" />
-            <Picker.Item label="Sombre" value="dark" />
-          </Picker>
-        </View>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Informations Utilisateur</Text>
-        {userInfo.message && (
-          <Text style={styles.message}>{userInfo.message}</Text>
-        )}
-          <TextInput
-            style={[styles.input]}
-            value={userInfo?.user.firstName}
-            onChangeText={(value) => handleProfileInputChange('firstName', value)}
-            placeholder="Votre prénom"
-            autoCapitalize="words"
-          />
+          return (
+            <ScrollView style={[styles.container, { backgroundColor: colors.background }] }>
+              <Text style={[styles.title, { color: colors.text }]}>Paramètres Utilisateur</Text>
+              <View style={[styles.section, { backgroundColor: colors.card }] }>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Thème de l'application</Text>
+                <View style={{ marginBottom: 15 }}>
+                  <Picker
+                    selectedValue={profile?.darkTheme !== undefined ?  profile?.darkTheme ? 'dark' : 'light' : '' }
+                    onValueChange={value => setTheme(value === 'dark')}
+                    style={{ backgroundColor: colors.card, borderRadius: 8, color: colors.text }}
+                  >
+                    <Picker.Item label="Système" value="" />
+                    <Picker.Item label="Clair" value="light" />
+                    <Picker.Item label="Sombre" value="dark" />
+                  </Picker>
+                </View>
+              </View>
+              <View style={[styles.section, { backgroundColor: colors.card }] }>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Informations Utilisateur</Text>
+                {userInfo.message && (
+                  <Text style={[styles.message, { backgroundColor: colors.notification, color: colors.card }]}>{userInfo.message}</Text>
+                )}
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+                    value={userInfo?.user.firstName}
+                    onChangeText={(value) => handleProfileInputChange('firstName', value)}
+                    placeholder="Votre prénom"
+                    autoCapitalize="words"
+                    placeholderTextColor={colors.border}
+                  />
 
-          <TextInput
-            style={[styles.input]}
-            value={userInfo?.user.lastName}
-            onChangeText={(value) => handleProfileInputChange('lastName', value)}
-            placeholder="Votre nom"
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
+                    value={userInfo?.user.lastName}
+                    onChangeText={(value) => handleProfileInputChange('lastName', value)}
+                    placeholder="Votre nom"
             autoCapitalize="words"
           />
     
           <TextInput
-            style={[styles.input, styles.inputDisabled]}
+            style={[styles.input, styles.inputDisabled,{ backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
             value={userInfo?.user.email}
             onChangeText={(value) => handleProfileInputChange('email', value)}
             placeholder="votre@email.com"
@@ -129,42 +131,46 @@ export default function userSetting() {
             autoCapitalize="none"
             editable={false}
             autoCorrect={false}
+             placeholderTextColor={colors.border}
           />
         <View style={styles.buttonContainer}>
           <Button title="Changer les informations d'utilisateur" onPress={handleProfileChange} />
         </View>
       </View>
-      <View style={styles.section}>
-        
-        <Text style={styles.sectionTitle}>Changer le mot de passe</Text>
+      <View style={[styles.section, { backgroundColor: colors.card }] }>
+                
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Changer le mot de passe</Text>
         {passwordForm.message && (
-          <Text style={styles.message}>{passwordForm.message}</Text>
+          <Text style={[styles.message, { backgroundColor: colors.notification, color: colors.card }]}>{passwordForm.message}</Text>
         )}
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
           placeholder="Ancien mot de passe"
           secureTextEntry={true}
           value={passwordForm.oldPassword}
           onChangeText={(value) => handlePasswordInputChange("oldPassword", value)}
+          placeholderTextColor={colors.border}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
           placeholder="Nouveau mot de passe"
           secureTextEntry={true}
           value={passwordForm.newPassword}
           onChangeText={(value) => handlePasswordInputChange("newPassword", value)}
+          placeholderTextColor={colors.border}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border }]}
           placeholder="Confirmer le nouveau mot de passe"
           secureTextEntry={true}
           value={passwordForm.confirmNewPassword}
           onChangeText={(value) =>
             handlePasswordInputChange("confirmNewPassword", value)
           }
+          placeholderTextColor={colors.border}
         />
         <View style={styles.buttonContainer}>
-          <Button title="Changer le mot de passe" onPress={handlePasswordChange} />
+          <Button title="Changer le mot de passe" onPress={handlePasswordChange} color={colors.primary} />
         </View>
       </View>
 
@@ -181,7 +187,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#f5f5f5",
   },
   title: {
     fontSize: 28,
@@ -191,7 +196,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   section: {
-    backgroundColor: "white",
     padding: 20,
     borderRadius: 12,
     marginBottom: 20,
@@ -202,17 +206,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   input: {
-    backgroundColor: "#f9f9f9",
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
   inputDisabled: {
-    backgroundColor: "#e8e8e8",
-    color: "#999",
     borderColor: "#ccc",
   },
   message: {
@@ -220,7 +220,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     padding: 10,
     borderRadius: 8,
-    backgroundColor: "#e3f2fd",
   },
   buttonContainer: {
     marginVertical: 8,
