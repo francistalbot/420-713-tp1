@@ -20,6 +20,7 @@ interface Trip {
   description: string;
   created_at: string;
   waypoint_count: number;
+  type: "personnel" | "affaire";
 }
 
 export default function tripListScreen() {
@@ -28,13 +29,24 @@ export default function tripListScreen() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState<"personnel" | "affaire">("personnel");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const router = useRouter();
 
-  const loadTrips = async () => {
+  // Load trips with pagination and type filter
+  const loadTrips = async (reset = false, type = tab, pageNum = page) => {
     try {
       if (!user) return;
-      const results = await listTrips(user.uid);
-      setTrips(results as any[]);
+      setLoading(reset ? true : false);
+      // listTrips should accept type and pagination
+      const results = await listTrips(user.uid, type, pageNum, 10); // 10 per page
+      if (reset) {
+        setTrips(results as any[]);
+      } else {
+        setTrips((prev) => [...prev, ...(results as any[])]);
+      }
+      setHasMore((results as any[]).length === 10);
     } catch (err) {
       console.error(err);
       Alert.alert("Erreur", "Impossible de charger les trajets.");
@@ -44,17 +56,28 @@ export default function tripListScreen() {
     }
   };
 
-  // 🔥 Rafraîchit la page automatiquement à chaque retour sur l'écran
+  // Refresh on tab change or focus
   useFocusEffect(
     useCallback(() => {
-      loadTrips();
-    }, [])
+      setPage(1);
+      loadTrips(true, tab, 1);
+    }, [tab, user])
   );
 
-  // 🔄 Pull to refresh
+  // Pull to refresh
   const onRefresh = () => {
     setRefreshing(true);
-    loadTrips();
+    setPage(1);
+    loadTrips(true, tab, 1);
+  };
+
+  // Lazy loading: fetch next page
+  const onEndReached = () => {
+    if (hasMore && !loading) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      loadTrips(false, tab, nextPage);
+    }
   };
 
   const handleDelete = (tripId: number) => {
@@ -65,23 +88,70 @@ export default function tripListScreen() {
         style: "destructive",
         onPress: async () => {
           await deleteTrip(tripId);
-          loadTrips();
+          setPage(1);
+          loadTrips(true, tab, 1);
         },
       },
     ]);
   };
 
-  if (loading) {
+  if (loading && trips.length === 0) {
     return (
-      <View style={[styles.loader, { backgroundColor: colors.background }] }>
+      <View style={[styles.loader, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }] }>
-      <Text style={[styles.title, { color: colors.text }]}>Liste des trajets</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>
+        Liste des trajets
+      </Text>
+
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            tab === "personnel" && styles.tabActive,
+            { borderColor: colors.primary },
+          ]}
+          onPress={() => {
+            setTab("personnel");
+            setPage(1);
+          }}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              tab === "personnel" && { color: colors.primary },
+            ]}
+          >
+            Personnels
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            tab === "affaire" && styles.tabActive,
+            { borderColor: colors.primary },
+          ]}
+          onPress={() => {
+            setTab("affaire");
+            setPage(1);
+          }}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              tab === "affaire" && { color: colors.primary },
+            ]}
+          >
+            Affaires
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <FlatList
         data={trips}
@@ -91,15 +161,22 @@ export default function tripListScreen() {
         }
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={[styles.tripItem, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[
+              styles.tripItem,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
             onPress={() => router.push(`/(main)/trip/${item.id}`)}
             onLongPress={() => handleDelete(item.id)}
           >
             <View style={{ flex: 1 }}>
-              <Text style={[styles.tripName, { color: colors.primary }]}>{item.name}</Text>
+              <Text style={[styles.tripName, { color: colors.primary }]}>
+                {item.name}
+              </Text>
 
               {item.description ? (
-                <Text style={[styles.desc, { color: colors.text }]}>{item.description}</Text>
+                <Text style={[styles.desc, { color: colors.text }]}>
+                  {item.description}
+                </Text>
               ) : null}
 
               <Text style={[styles.details, { color: colors.border }]}>
@@ -109,10 +186,19 @@ export default function tripListScreen() {
             </View>
           </TouchableOpacity>
         )}
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          hasMore && !loading ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : null
+        }
       />
 
-      {trips.length === 0 && (
-        <Text style={[styles.empty, { color: colors.border }]}>Aucun trajet trouvé.</Text>
+      {trips.length === 0 && !loading && (
+        <Text style={[styles.empty, { color: colors.border }]}>
+          Aucun trajet trouvé.
+        </Text>
       )}
     </View>
   );
@@ -128,6 +214,28 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
     textAlign: "center",
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderWidth: 2,
+    borderRadius: 8,
+    marginHorizontal: 5,
+    alignItems: "center",
+    backgroundColor: "#f2f2f2",
+  },
+  tabActive: {
+    backgroundColor: "#e0e0e0",
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#888",
   },
   tripItem: {
     padding: 15,

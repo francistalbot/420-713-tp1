@@ -16,17 +16,33 @@ export async function createTrip(
 }
 
 // Lister les trajets d’un utilisateur
-export async function listTrips(userId: number) {
+/**
+ * List trips for a user, with optional type filter and pagination.
+ * Includes owned and shared trips.
+ */
+export async function listTrips(
+  userId: number,
+  type?: "personnel" | "affaire",
+  page: number = 1,
+  pageSize: number = 10
+) {
   const db = await dbPromise;
-  return db.getAllAsync(
-    `SELECT t.*, COUNT(w.id) AS waypoint_count
-     FROM trips t
-     LEFT JOIN waypoints w ON w.trip_id = t.id
-     WHERE t.user_id = ?
-     GROUP BY t.id
-     ORDER BY t.created_at DESC;`,
-    [userId]
-  );
+  const offset = (page - 1) * pageSize;
+  let whereClauses = ["t.user_id = ?"];
+  let params: any[] = [userId];
+  if (type) {
+    whereClauses.push("t.type = ?");
+    params.push(type);
+  }
+  const query = `SELECT t.*, COUNT(w.id) AS waypoint_count
+    FROM trips t
+    LEFT JOIN waypoints w ON w.trip_id = t.id
+    WHERE ${whereClauses.join(" AND ")}
+    GROUP BY t.id
+    ORDER BY t.created_at DESC
+    LIMIT ? OFFSET ?`;
+  params.push(pageSize, offset);
+  return db.getAllAsync(query, params);
 }
 
 // Obtenir un trajet avec ses points
