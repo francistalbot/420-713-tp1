@@ -46,13 +46,14 @@ interface Trip {
   description: string;
   created_at: string;
   waypoints: Waypoint[];
+  shared?: boolean;
 }
 
 export default function TripDetailScreen() {
   // Charger les trajets partagés dont je suis propriétaire
 
   const { user } = useAuthStore();
-  const { id } = useLocalSearchParams();
+  const { id, shared } = useLocalSearchParams();
   const router = useRouter();
   const { colors } = useTheme();
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -78,7 +79,12 @@ export default function TripDetailScreen() {
   const loadTrip = async () => {
     try {
       const data = await getTripById(Number(id));
-      setTrip(data);
+      // Si le paramètre shared est présent, on marque le trajet comme partagé
+      if (shared === "1" || shared === "true") {
+        setTrip({ ...data, shared: true });
+      } else {
+        setTrip(data);
+      }
       setName(data.name);
       setDescription(data.description || "");
     } catch (err) {
@@ -170,6 +176,7 @@ export default function TripDetailScreen() {
         <Button
           title="Partager le trajet"
           onPress={() => setShareModalVisible(true)}
+          disabled={!!trip.shared}
         />
       </View>
 
@@ -346,9 +353,14 @@ export default function TripDetailScreen() {
         />
 
         <Button
-          title="Enregistrer les modifications"
+          title={
+            trip.shared
+              ? "Modification désactivée (partagé)"
+              : "Enregistrer les modifications"
+          }
           onPress={handleUpdate}
           color={colors.primary}
+          disabled={!!trip.shared}
         />
         <View style={{ marginTop: 10 }}>
           <Button

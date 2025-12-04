@@ -1,3 +1,18 @@
+// Récupère les trajets par leurs IDs et les marque comme partagés
+export async function getTripsByIds(tripIds: (string | number)[]) {
+  if (!tripIds || tripIds.length === 0) return [];
+  const db = await dbPromise;
+  // SQLite placeholders
+  const placeholders = tripIds.map(() => "?").join(",");
+  const query = `SELECT t.*, COUNT(w.id) AS waypoint_count
+    FROM trips t
+    LEFT JOIN waypoints w ON w.trip_id = t.id
+    WHERE t.id IN (${placeholders})
+    GROUP BY t.id`;
+  const trips = await db.getAllAsync(query, tripIds);
+  // Ajoute shared: true à chaque trip
+  return trips.map((trip) => ({ ...trip, shared: true }));
+}
 import dbPromise from "../database/initDatabase";
 
 // Créer un trajet

@@ -1,3 +1,21 @@
+// Récupère tous les trajets partagés avec un utilisateur et les marque comme partagés
+// Renvoie la liste des IDs de trajets partagés avec l'utilisateur
+export async function getAllSharedTripsForUser(userId: string) {
+  const sharedTripsQuery = query(
+    collection(db, "sharedTrips"),
+    where("targetUserId", "==", userId.toString())
+  );
+  const snapshot = await getDocs(sharedTripsQuery);
+  const sharedTripRefs: { tripId: string; ownerId: string }[] = [];
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    sharedTripRefs.push({
+      tripId: data.tripId,
+      ownerId: data.ownerId,
+    });
+  });
+  return sharedTripRefs;
+}
 import { db } from "@/lib/firebaseConfig";
 import { ShareTrip } from "@/schemas/shareTripSchema";
 import {

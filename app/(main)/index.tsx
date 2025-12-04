@@ -12,7 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { deleteTrip, listTrips } from "../../lib/trips";
+import { getAllSharedTripsForUser } from "../../lib/shareTrip";
+import { deleteTrip, getTripsByIds, listTrips } from "../../lib/trips";
 
 interface Trip {
   id: number;
@@ -21,6 +22,7 @@ interface Trip {
   created_at: string;
   waypoint_count: number;
   type: "personnel" | "affaire";
+  shared?: boolean;
 }
 
 export default function tripListScreen() {
@@ -39,14 +41,36 @@ export default function tripListScreen() {
     try {
       if (!user) return;
       setLoading(reset ? true : false);
-      // listTrips should accept type and pagination
-      const results = await listTrips(user.uid, type, pageNum, 10); // 10 per page
-      if (reset) {
-        setTrips(results as any[]);
-      } else {
-        setTrips((prev) => [...prev, ...(results as any[])]);
+      // Load owned trips
+      const ownedResults = await listTrips(user.uid, type, pageNum, 10);
+
+      // Load shared trip IDs from Firebase
+      let sharedTrips: any[] = [];
+      if (pageNum === 1) {
+        // Only fetch shared trips on first page
+        const sharedRefs = await getAllSharedTripsForUser(user.uid);
+        if (sharedRefs.length > 0) {
+          // Get actual trip data from SQLite, filter by type
+          const sharedIds = sharedRefs.map((ref) => ref.tripId);
+          const allSharedTrips = await getTripsByIds(sharedIds);
+          sharedTrips = allSharedTrips.filter((trip) => trip.type === type);
+        }
       }
-      setHasMore((results as any[]).length === 10);
+
+      // Merge owned and shared trips, avoiding duplicates
+      const allTrips = [...ownedResults, ...sharedTrips].filter(
+        (trip, idx, arr) => arr.findIndex((t) => t.id === trip.id) === idx
+      );
+
+      if (reset) {
+        setTrips(allTrips as any[]);
+      } else {
+        setTrips((prev) => [
+          ...prev,
+          ...allTrips.filter((trip) => !prev.some((t) => t.id === trip.id)),
+        ]);
+      }
+      setHasMore((ownedResults as any[]).length === 10);
     } catch (err) {
       console.error(err);
       Alert.alert("Erreur", "Impossible de charger les trajets.");
@@ -80,7 +104,8 @@ export default function tripListScreen() {
     }
   };
 
-  const handleDelete = (tripId: number) => {
+  const handleDelete = (tripId: number, shared?: boolean) => {
+    if (shared) return; // Disable delete for shared trips
     Alert.alert("Supprimer", "Voulez-vous supprimer ce trajet ?", [
       { text: "Annuler", style: "cancel" },
       {
@@ -164,13 +189,20 @@ export default function tripListScreen() {
             style={[
               styles.tripItem,
               { backgroundColor: colors.card, borderColor: colors.border },
+              item.shared && { opacity: 0.6 },
             ]}
-            onPress={() => router.push(`/(main)/trip/${item.id}`)}
-            onLongPress={() => handleDelete(item.id)}
+            onPress={() =>
+              router.push({
+                pathname: `/(main)/trip/${item.id}`,
+                params: { shared: item.shared ? "1" : undefined },
+              })
+            }
+            onLongPress={() => handleDelete(item.id, item.shared)}
+            // Tous les trajets sont cliquables
           >
             <View style={{ flex: 1 }}>
               <Text style={[styles.tripName, { color: colors.primary }]}>
-                {item.name}
+                {item.name} {item.shared ? "(partagé)" : ""}
               </Text>
 
               {item.description ? (
