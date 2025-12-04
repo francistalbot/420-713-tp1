@@ -59,7 +59,7 @@ export async function shareTrip(
 export async function getSharedTripsForUser(tripId: number, userId: string) {
   const sharedTripsQuery = query(
     collection(db, "sharedTrips"),
-    where("targetUserId", "==", userId.toString()),
+    where("ownerId", "==", userId.toString()),
     where("tripId", "==", tripId.toString())
   );
   const snapshot = await getDocs(sharedTripsQuery);

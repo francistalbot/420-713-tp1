@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { createTrip } from "../../lib/trips";
@@ -246,17 +247,34 @@ export default function AddTripScreen() {
           {/* Picker pour le type de trajet */}
           <View style={styles.pickerContainer}>
             <View style={styles.pickerRow}>
-              <Button
-                title="Personnel"
-                color={type === "personnel" ? colors.primary : colors.border}
-                onPress={() => setType("personnel")}
-              />
+              <TouchableOpacity
+          style={[
+            styles.tab,
+            type === "personnel" && styles.tabActive,
+            { borderColor: colors.primary },
+          ]}
+                //color={type === "personnel" ? colors.primary : colors.border}
+                onPress={() => setType("personnel")}>
+                          <Text>
+                            Personnel</Text></TouchableOpacity>
+              
               <View style={{ width: 10 }} />
-              <Button
-                title="Affaire"
-                color={type === "affaire" ? colors.primary : colors.border}
+                  <TouchableOpacity
+          style={[
+            styles.tab,
+            type === "affaire" && styles.tabActive,
+            { borderColor: colors.primary },
+          ]}
+                    //title="Affaire"
+                //color={type === "affaire" ? colors.primary : colors.border}
                 onPress={() => setType("affaire")}
-              />
+              >
+              
+                        <Text
+                        >
+                          Affaire
+                        </Text>
+                        </TouchableOpacity>
             </View>
           </View>
         </>
@@ -468,5 +486,27 @@ const styles = StyleSheet.create({
   },
   buttonSpacing: {
     marginTop: 10,
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderWidth: 2,
+    borderRadius: 8,
+    marginHorizontal: 5,
+    alignItems: "center",
+    backgroundColor: "#f2f2f2",
+  },
+  tabActive: {
+    backgroundColor: "#e0e0e0",
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#888",
   },
 });
